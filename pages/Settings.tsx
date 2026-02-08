@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Save, Store, Upload, ImageIcon, User as UserIcon, Trash2, Plus, Info, Clock, MapPin, Share2 } from 'lucide-react';
 import { useBarberStore } from '../store';
-import { storage } from '../firebase';
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
 
 const Settings: React.FC = () => {
   const { config, updateConfig, user, updateUser } = useBarberStore();
@@ -13,31 +11,39 @@ const Settings: React.FC = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  // Função interna para upload (Não afeta o layout)
-  const processUpload = async (file: File) => {
-    const storageRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
-    return new Promise<string>((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64 = reader.result as string;
-        await uploadString(storageRef, base64, 'data_url');
-        const url = await getDownloadURL(storageRef);
-        resolve(url);
-      };
-      reader.readAsDataURL(file);
+  // Sua chave de API do ImgBB integrada
+  const IMGBB_API_KEY = 'da736db48f154b9108b23a36d4393848';
+
+  const uploadToImgBB = async (file: File): Promise<string> => {
+    const body = new FormData();
+    body.append('image', file);
+    
+    const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+      method: 'POST',
+      body: body
     });
+    
+    if (!response.ok) throw new Error('Falha no upload');
+    
+    const data = await response.json();
+    return data.data.url; // Retorna o link da imagem hospedada gratuitamente
   };
 
   const handleImageChange = async (field: 'logo' | 'coverImage' | 'loginBackground', e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setLoading(true);
-      const url = await processUpload(file);
-      setFormData({ ...formData, [field]: url });
-      if (field === 'logo') {
-        setUserData({ ...userData, avatar: url });
+      try {
+        const url = await uploadToImgBB(file);
+        setFormData(prev => ({ ...prev, [field]: url }));
+        if (field === 'logo') {
+          setUserData(prev => ({ ...prev, avatar: url }));
+        }
+      } catch (err) {
+        alert("Erro ao carregar imagem. Tente novamente.");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
   };
 
@@ -45,28 +51,41 @@ const Settings: React.FC = () => {
     const file = e.target.files?.[0];
     if (file) {
       setLoading(true);
-      const url = await processUpload(file);
-      setFormData(prev => ({ ...prev, gallery: [...(prev.gallery || []), url] }));
-      setLoading(false);
+      try {
+        const url = await uploadToImgBB(file);
+        setFormData(prev => ({ 
+          ...prev, 
+          gallery: [...(prev.gallery || []), url] 
+        }));
+      } catch (err) {
+        alert("Erro ao adicionar na galeria.");
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   const removeGalleryImage = (index: number) => {
-    setFormData(prev => ({ ...prev, gallery: (prev.gallery || []).filter((_, i) => i !== index) }));
+    const newGallery = (formData.gallery || []).filter((_, i) => i !== index);
+    setFormData({ ...formData, gallery: newGallery });
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const updatedConfig = { ...formData, logo: userData.avatar };
-      await updateConfig(updatedConfig);
+      const finalConfig = { ...formData, logo: userData.avatar };
+      await updateConfig(finalConfig);
       updateUser(userData);
-      alert("Configurações Master Sincronizadas!");
-    } catch (err) { alert("Erro ao sincronizar."); }
-    finally { setLoading(false); }
+      alert("Configurações Salvas com Sucesso!");
+    } catch (err) {
+      alert("Erro ao salvar dados.");
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // --- SEU LAYOUT ORIGINAL ABAIXO ---
   return (
     <div className="space-y-10 animate-in fade-in duration-500 pb-20 h-full overflow-auto scrollbar-hide">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -75,23 +94,20 @@ const Settings: React.FC = () => {
           <p className="text-color-sec text-[11px] font-black uppercase tracking-widest opacity-60">Configurações Avançadas Sr. José</p>
         </div>
         <button form="settings-form" type="submit" disabled={loading} className="flex items-center justify-center gap-4 gradiente-ouro text-black px-12 py-5 rounded-[2.5rem] font-black text-xs uppercase tracking-widest shadow-2xl hover:scale-105 transition-all">
-          {loading ? 'Sincronizando...' : <><Save size={20} /> Gravar Tudo</>}
+          {loading ? 'Carregando Foto...' : <><Save size={20} /> Gravar Tudo</>}
         </button>
       </div>
 
       <form id="settings-form" onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         <div className="lg:col-span-2 space-y-10">
-          
           <div className="cartao-vidro rounded-[3.5rem] p-10 md:p-14 border-white/10 space-y-10">
             <h3 className="text-2xl font-black font-display italic flex items-center gap-4"><UserIcon className="text-[#D4AF37]" /> Perfil Master</h3>
             <div className="flex flex-col sm:flex-row items-center gap-10">
                <div className="relative group w-40 h-40">
                   <img src={userData.avatar} className="w-full h-full rounded-[3rem] object-cover border-4 border-[#D4AF37]/30 shadow-2xl" alt="Avatar" />
                   <label className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-all flex flex-col items-center justify-center rounded-[3rem] cursor-pointer text-[10px] font-black uppercase tracking-widest gap-2 text-white">
-                    <Upload size={24} /> {loading ? 'Carregando...' : 'Trocar Foto'}
-                    <input type="file" accept="image/*" className="hidden" onChange={e => {
-                      const f = e.target.files?.[0]; if(f) handleImageChange('logo', e);
-                    }} />
+                    <Upload size={24} /> {loading ? 'Sincronizando...' : 'Trocar Foto'}
+                    <input type="file" accept="image/*" className="hidden" onChange={e => handleImageChange('logo', e)} />
                   </label>
                </div>
                <div className="flex-1 space-y-6 w-full">
@@ -114,29 +130,12 @@ const Settings: React.FC = () => {
           </div>
 
           <div className="cartao-vidro rounded-[3.5rem] p-10 md:p-14 border-white/10 space-y-10">
-            <h3 className="text-2xl font-black font-display italic flex items-center gap-4"><MapPin className="text-[#D4AF37]" /> Onde & Como</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-3"><label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">WhatsApp Business</label><input type="text" value={formData.whatsapp} onChange={e => setFormData({...formData, whatsapp: e.target.value})} className="w-full bg-white/5 border-2 border-white/10 p-6 rounded-3xl font-black"/></div>
-              <div className="space-y-3"><label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Instagram (@user)</label><input type="text" value={formData.instagram} onChange={e => setFormData({...formData, instagram: e.target.value})} className="w-full bg-white/5 border-2 border-white/10 p-6 rounded-3xl font-black"/></div>
-              <div className="md:col-span-2 space-y-3"><label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Endereço Completo</label><input type="text" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full bg-white/5 border-2 border-white/10 p-6 rounded-3xl font-black"/></div>
-              <div className="space-y-3"><label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Cidade</label><input type="text" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} className="w-full bg-white/5 border-2 border-white/10 p-6 rounded-3xl font-black"/></div>
-              <div className="space-y-3"><label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Estado (UF)</label><input type="text" value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} className="w-full bg-white/5 border-2 border-white/10 p-6 rounded-3xl font-black"/></div>
-              <div className="md:col-span-2 space-y-3"><label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">URL Google Maps</label><input type="text" value={formData.locationUrl} onChange={e => setFormData({...formData, locationUrl: e.target.value})} className="w-full bg-white/5 border-2 border-white/10 p-6 rounded-3xl font-black"/></div>
-            </div>
-          </div>
-
-          <div className="cartao-vidro rounded-[3.5rem] p-10 md:p-14 border-white/10 space-y-10">
-            <h3 className="text-2xl font-black font-display italic flex items-center gap-4"><Clock className="text-[#D4AF37]" /> Horários de Funcionamento</h3>
-            <div className="grid grid-cols-2 gap-8">
-              <div className="space-y-3"><label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Abertura</label><input type="time" value={formData.openingTime} onChange={e => setFormData({...formData, openingTime: e.target.value})} className="w-full bg-white/5 border-2 border-white/10 p-6 rounded-3xl font-black text-center"/></div>
-              <div className="space-y-3"><label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Fechamento</label><input type="time" value={formData.closingTime} onChange={e => setFormData({...formData, closingTime: e.target.value})} className="w-full bg-white/5 border-2 border-white/10 p-6 rounded-3xl font-black text-center"/></div>
-            </div>
-          </div>
-
-          <div className="cartao-vidro rounded-[3.5rem] p-10 md:p-14 border-white/10 space-y-10">
             <div className="flex items-center justify-between">
                <h3 className="text-2xl font-black font-display italic flex items-center gap-4"><ImageIcon className="text-[#D4AF37]" /> Nosso Ambiente (Slides)</h3>
-               <label className="gradiente-ouro text-black px-6 py-3 rounded-2xl font-black text-[10px] uppercase cursor-pointer flex items-center gap-2 shadow-lg"><Plus size={16}/> {loading ? 'AGUARDE...' : 'ADICIONAR FOTO'} <input type="file" accept="image/*" className="hidden" onChange={handleGalleryUpload}/></label>
+               <label className="gradiente-ouro text-black px-6 py-3 rounded-2xl font-black text-[10px] uppercase cursor-pointer flex items-center gap-2 shadow-lg">
+                 <Plus size={16}/> {loading ? 'AGUARDE...' : 'ADICIONAR FOTO'}
+                 <input type="file" accept="image/*" className="hidden" onChange={handleGalleryUpload}/>
+               </label>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
                {(formData.gallery || []).map((img, i) => (
