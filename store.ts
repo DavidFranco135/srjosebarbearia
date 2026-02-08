@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { Client, Professional, Service, Appointment, ShopConfig, User, FinancialEntry, Notification, Review, Suggestion } from './types';
 import './firebase';
@@ -242,8 +241,8 @@ export function BarberProvider({ children }: { children?: ReactNode }) {
     setConfig(prev => ({ ...prev, reviews: [newReview, ...(prev.reviews || [])] }));
   };
 
-  return React.createElement(BarberContext.Provider, {
-    value: {
+  return (
+    <BarberContext.Provider value={{
       user, clients, professionals, services, appointments, financialEntries, notifications, suggestions, config, loading, theme,
       toggleTheme, login, logout, updateUser, addClient, updateClient, deleteClient,
       addService, updateService, deleteService,
@@ -251,8 +250,10 @@ export function BarberProvider({ children }: { children?: ReactNode }) {
       addAppointment, updateAppointmentStatus, rescheduleAppointment, deleteAppointment,
       addFinancialEntry, deleteFinancialEntry, addSuggestion, deleteSuggestion,
       markNotificationAsRead, clearNotifications, updateConfig, addShopReview
-    }
-  }, children);
+    }}>
+      {children}
+    </BarberContext.Provider>
+  );
 }
 
 export const useBarberStore = () => {
