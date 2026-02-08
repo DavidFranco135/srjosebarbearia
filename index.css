@@ -1,0 +1,195 @@
+/* Reset e Base Styles */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --primario-ouro: #D4AF37;
+  --fundo: #050505;
+  --texto: #f9fafb;
+  --texto-secundario: #9ca3af;
+  --cartao: rgba(18, 18, 18, 0.8);
+  --borda: rgba(255, 255, 255, 0.08);
+}
+
+.light-theme {
+  --fundo: #F3F4F6;
+  --texto: #000000;
+  --texto-secundario: #374151;
+  --cartao: #FFFFFF;
+  --borda: rgba(0, 0, 0, 0.15);
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  background-color: var(--fundo);
+  color: var(--texto);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.font-display {
+  font-family: 'Fraunces', Georgia, serif;
+}
+
+.gradiente-ouro {
+  background: linear-gradient(135deg, #E5C76B 0%, #D4AF37 50%, #B8860B 100%);
+}
+
+.cartao-vidro {
+  background: var(--cartao);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--borda);
+  color: var(--texto);
+}
+
+.text-color-main { 
+  color: var(--texto); 
+}
+
+.text-color-sec { 
+  color: var(--texto-secundario); 
+}
+
+/* Form Elements */
+input, select, textarea, button {
+  font-size: 16px !important;
+  color: var(--texto) !important;
+  font-family: inherit;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+}
+
+/* Scrollbar Customization */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Theme Transitions */
+.theme-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Image Container */
+.img-container {
+  aspect-ratio: 1/1;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  background-color: #111;
+}
+
+.img-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.img-container:hover img {
+  transform: scale(1.05);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Recharts Fix */
+.recharts-wrapper {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.recharts-surface {
+  overflow: visible;
+}
+
+/* Loading State */
+.loading {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* Toast/Notification Styles */
+.notification-enter {
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+}
+
+/* Prevent zoom on input focus (iOS) */
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  :root {
+    --borda: rgba(255, 255, 255, 0.3);
+  }
+  
+  .light-theme {
+    --borda: rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
