@@ -23,33 +23,47 @@ const App: React.FC = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [registerData, setRegisterData] = useState({ name: '', phone: '', email: '', password: '' });
 
-  // --- LÓGICA DE NOTIFICAÇÃO (SINO APPLE/IFOOD CORRIGIDO PARA PC) ---
+  // 1. LÓGICA PARA O ÍCONE VOLTAR NO NAVEGADOR
   useEffect(() => {
-    // Som de Sino Duplo Premium (Opção mais audível para PC)
+    if (config.logo) {
+      const link: HTMLLinkElement = document.querySelector("link[rel*='icon']") || document.createElement('link');
+      link.type = 'image/x-icon';
+      link.rel = 'shortcut icon';
+      link.href = config.logo;
+      document.getElementsByTagName('head')[0].appendChild(link);
+      document.title = config.barberName || 'Sr. José Barber';
+    }
+  }, [config.logo, config.barberName]);
+
+  // 2. LÓGICA DE NOTIFICAÇÃO (SOMENTE PARA QUEM RECEBE)
+  useEffect(() => {
     const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/3005/3005-preview.mp3');
     audio.preload = 'auto';
 
-    // Função para destravar o áudio no navegador após o primeiro clique do ADM
     const unlockAudio = () => {
       audio.play().then(() => {
         audio.pause();
         audio.currentTime = 0;
         window.removeEventListener('click', unlockAudio);
+        window.removeEventListener('touchstart', unlockAudio);
       }).catch(() => {});
     };
     window.addEventListener('click', unlockAudio);
+    window.addEventListener('touchstart', unlockAudio);
 
     const q = query(collection(db, 'appointments'), orderBy('createdAt', 'desc'), limit(1));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (snapshot.metadata.hasPendingWrites) return;
+      // SÓ TOCA SE: O dado veio do servidor e NÃO foi este dispositivo que enviou
+      if (snapshot.metadata.hasPendingWrites) return; 
 
       snapshot.docChanges().forEach((change) => {
         if (change.type === 'added' && !snapshot.metadata.fromCache) {
-          audio.currentTime = 0; 
-          audio.play().catch(e => {
-            console.warn("Áudio aguardando interação do usuário.");
-          });
+          // Delay de sincronia para garantir que toca no ADM
+          setTimeout(() => {
+            audio.currentTime = 0;
+            audio.play().catch(() => {});
+          }, 800);
         }
       });
     });
@@ -57,9 +71,9 @@ const App: React.FC = () => {
     return () => {
       unsubscribe();
       window.removeEventListener('click', unlockAudio);
+      window.removeEventListener('touchstart', unlockAudio);
     };
   }, []);
-  // -----------------------------------------------------------------
 
   const handleLogin = async () => {
     try {
@@ -131,7 +145,7 @@ const App: React.FC = () => {
                <img src={config.logo} className="w-full h-full object-cover" alt="Logo" />
             </div>
             <div className="space-y-1">
-              <h1 className="text-3xl font-black font-display italic tracking-tight uppercase">{isRegistering ? 'Criar Conta' : 'Portal Sr. José'}</h1>
+              <h1 className="text-3xl font-black font-display italic tracking-tight uppercase tracking-tight">{isRegistering ? 'Criar Conta' : 'Portal Sr. José'}</h1>
               <p className="opacity-40 text-[9px] font-black uppercase tracking-[0.3em]">Signature</p>
             </div>
           </div>
