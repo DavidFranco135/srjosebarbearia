@@ -1,7 +1,0 @@
-{
-  "name": "BarberAdmin Pro - Barber Shop Sr. José",
-  "description": "Premium Barber Shop Management System with advanced scheduling, client tracking, and financial insights.",
-  "requestFramePermissions": [
-    "camera"
-  ]
-}
