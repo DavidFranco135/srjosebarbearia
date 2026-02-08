@@ -7,17 +7,23 @@ const Suggestions: React.FC = () => {
   const [replyText, setReplyText] = useState<{ [key: string]: string }>({});
 
   const handleReply = async (id: string) => {
-    if (!replyText[id]?.trim()) return;
+    const text = replyText[id]?.trim();
+    if (!text) {
+      alert("Por favor, digite uma resposta antes de enviar.");
+      return;
+    }
+    
     try {
-      // Atualiza a sugestão com a resposta do ADM
+      // É essencial que a sua 'store.ts' tenha a função updateSuggestion mapeada para o Firebase
       await updateSuggestion(id, { 
-        reply: replyText[id],
+        reply: text,
         status: 'read' 
       });
       setReplyText(prev => ({ ...prev, [id]: '' }));
-      alert("Resposta enviada!");
+      alert("Resposta enviada com sucesso!");
     } catch (error) {
-      alert("Erro ao responder.");
+      console.error("Erro ao atualizar sugestão:", error);
+      alert("Erro ao responder. Verifique se a função updateSuggestion existe na sua store.");
     }
   };
 
@@ -48,11 +54,10 @@ const Suggestions: React.FC = () => {
                 "{sug.text}"
              </div>
 
-             {/* CAMPO DE RESPOSTA DO ADM */}
              <div className="mt-6 space-y-3">
                 <div className="relative">
                   <textarea
-                    value={replyText[sug.id] || sug.reply || ''}
+                    value={replyText[sug.id] !== undefined ? replyText[sug.id] : (sug.reply || '')}
                     onChange={(e) => setReplyText({ ...replyText, [sug.id]: e.target.value })}
                     placeholder="Responder ao cliente..."
                     className="w-full bg-black/40 border border-white/10 p-4 rounded-2xl outline-none focus:border-[#D4AF37]/50 text-xs text-white resize-none transition-all"
@@ -79,13 +84,6 @@ const Suggestions: React.FC = () => {
              </div>
           </div>
         ))}
-
-        {suggestions.length === 0 && (
-          <div className="col-span-full py-20 text-center space-y-4">
-             <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mx-auto text-zinc-800"><MessageSquare size={40}/></div>
-             <p className="text-[10px] text-zinc-600 font-black uppercase italic">Nenhuma sugestão registrada no momento.</p>
-          </div>
-        )}
       </div>
     </div>
   );
