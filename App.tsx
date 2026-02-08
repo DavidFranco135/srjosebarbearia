@@ -11,6 +11,7 @@ import Suggestions from './pages/Suggestions';
 import PublicBooking from './pages/PublicBooking';
 import { useBarberStore } from './store';
 import { LogIn, Sparkles, Sun, Moon, LogOut, UserPlus } from 'lucide-react';
+// Importação do Firebase para o som em tempo real
 import { db } from './firebase';
 import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
 
@@ -23,69 +24,39 @@ const App: React.FC = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [registerData, setRegisterData] = useState({ name: '', phone: '', email: '', password: '' });
 
-  // 1. LÓGICA PARA O ÍCONE VOLTAR NO NAVEGADOR
+  // --- LÓGICA DO SOM DE NOTIFICAÇÃO (ESTILO IFOOD) ---
   useEffect(() => {
-    if (config.logo) {
-      const link: HTMLLinkElement = document.querySelector("link[rel*='icon']") || document.createElement('link');
-      link.type = 'image/x-icon';
-      link.rel = 'shortcut icon';
-      link.href = config.logo;
-      document.getElementsByTagName('head')[0].appendChild(link);
-      document.title = config.barberName || 'Sr. José Barber';
-    }
-  }, [config.logo, config.barberName]);
-
-  // 2. LÓGICA DE NOTIFICAÇÃO (SOMENTE PARA QUEM RECEBE)
-  useEffect(() => {
-    const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/3005/3005-preview.mp3');
-    audio.preload = 'auto';
-
-    const unlockAudio = () => {
-      audio.play().then(() => {
-        audio.pause();
-        audio.currentTime = 0;
-        window.removeEventListener('click', unlockAudio);
-        window.removeEventListener('touchstart', unlockAudio);
-      }).catch(() => {});
-    };
-    window.addEventListener('click', unlockAudio);
-    window.addEventListener('touchstart', unlockAudio);
+    // Link do som de alerta (pode ser trocado por qualquer link de áudio)
+    const notificationAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2051/2051-preview.mp3');
 
     const q = query(collection(db, 'appointments'), orderBy('createdAt', 'desc'), limit(1));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      // SÓ TOCA SE: O dado veio do servidor e NÃO foi este dispositivo que enviou
-      if (snapshot.metadata.hasPendingWrites) return; 
-
       snapshot.docChanges().forEach((change) => {
+        // Se um agendamento for ADICIONADO e não for o carregamento inicial do cache
         if (change.type === 'added' && !snapshot.metadata.fromCache) {
-          // Delay de sincronia para garantir que toca no ADM
-          setTimeout(() => {
-            audio.currentTime = 0;
-            audio.play().catch(() => {});
-          }, 800);
+          notificationAudio.play().catch(() => {
+            console.log("O som tocará após o seu primeiro clique na página (regra do navegador).");
+          });
         }
       });
     });
 
-    return () => {
-      unsubscribe();
-      window.removeEventListener('click', unlockAudio);
-      window.removeEventListener('touchstart', unlockAudio);
-    };
+    return () => unsubscribe();
   }, []);
+  // --- FIM DA LÓGICA DO SOM ---
 
   const handleLogin = async () => {
     try {
       await login(loginIdentifier, loginPassword);
     } catch (err) {
-      alert("Falha no acesso.");
+      alert("Falha no acesso. Verifique suas credenciais.");
     }
   };
 
   const handleRegister = async () => {
     if (!registerData.name || !registerData.phone || !registerData.password) {
-      alert("Preencha todos os campos.");
+      alert("Preencha todos os campos obrigatórios.");
       return;
     }
     try {
@@ -95,10 +66,10 @@ const App: React.FC = () => {
         email: registerData.email,
         password: registerData.password
       } as any);
-      alert("Cadastro realizado!");
+      alert("Cadastro realizado com sucesso!");
       setIsRegistering(false);
     } catch (err) {
-      alert("Erro ao cadastrar.");
+      alert("Erro ao realizar cadastro.");
     }
   };
 
@@ -140,12 +111,14 @@ const App: React.FC = () => {
         </div>
 
         <div className="cartao-vidro w-full max-w-md rounded-[3.5rem] p-8 md:p-12 space-y-8 animate-in fade-in zoom-in duration-700 shadow-2xl relative z-10 border-white/5">
+          <div className="absolute top-0 inset-x-0 h-1 gradiente-ouro rounded-t-[3.5rem]"></div>
+          
           <div className="text-center space-y-4">
             <div className="w-20 h-20 rounded-[2rem] mx-auto overflow-hidden shadow-2xl border-2 border-[#D4AF37]/30">
                <img src={config.logo} className="w-full h-full object-cover" alt="Logo" />
             </div>
             <div className="space-y-1">
-              <h1 className="text-3xl font-black font-display italic tracking-tight uppercase tracking-tight">{isRegistering ? 'Criar Conta' : 'Portal Sr. José'}</h1>
+              <h1 className="text-3xl font-black font-display italic tracking-tight uppercase">{isRegistering ? 'Criar Conta' : 'Portal Sr. José'}</h1>
               <p className="opacity-40 text-[9px] font-black uppercase tracking-[0.3em]">Signature</p>
             </div>
           </div>
@@ -157,14 +130,20 @@ const App: React.FC = () => {
                 <input type="password" placeholder="SENHA" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} className={`w-full border p-4 rounded-2xl outline-none focus:border-[#D4AF37] font-bold text-base ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-white/5 border-white/10'}`} />
               </div>
               <button onClick={handleLogin} className="w-full gradiente-ouro text-black py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl transition-all">ACESSAR</button>
+              <div className="text-center">
+                <button onClick={() => setIsRegistering(true)} className="text-[9px] font-black uppercase tracking-widest text-[#D4AF37] hover:underline transition-all">Novo por aqui? Cadastre-se</button>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
               <input type="text" placeholder="NOME" value={registerData.name} onChange={e => setRegisterData({...registerData, name: e.target.value})} className={`w-full border p-4 rounded-xl outline-none ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-white/5 border-white/10'}`} />
-              <input type="password" placeholder="SENHA" value={registerData.password} onChange={e => setRegisterData({...registerData, password: e.target.value})} className={`w-full border p-4 rounded-xl outline-none ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-white/5 border-white/10'}`} />
-              <button onClick={handleRegister} className="w-full gradiente-ouro text-black py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs">FINALIZAR</button>
+              <input type="text" placeholder="WHATSAPP" value={registerData.phone} onChange={e => setRegisterData({...registerData, phone: e.target.value})} className={`w-full border p-4 rounded-xl outline-none ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-white/5 border-white/10'}`} />
+              <input type="password" placeholder="CRIAR SENHA" value={registerData.password} onChange={e => setRegisterData({...registerData, password: e.target.value})} className={`w-full border p-4 rounded-xl outline-none ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-white/5 border-white/10'}`} />
+              <button onClick={handleRegister} className="w-full gradiente-ouro text-black py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl">FINALIZAR</button>
+              <button onClick={() => setIsRegistering(false)} className="w-full text-[9px] font-black uppercase opacity-40">Voltar</button>
             </div>
           )}
+
           <button onClick={() => setIsPublicView(true)} className="w-full opacity-40 hover:opacity-100 text-[9px] font-black uppercase tracking-[0.2em] transition-all">Visualizar Site</button>
         </div>
       </div>
@@ -190,7 +169,7 @@ const App: React.FC = () => {
       <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
         {renderContent()}
       </Layout>
-      <button onClick={() => setIsPublicView(true)} className="fixed bottom-6 right-6 z-[100] gradiente-ouro text-black px-8 py-4 rounded-[2rem] font-black text-xs uppercase shadow-2xl">VISÃO DO CLIENTE</button>
+      <button onClick={() => setIsPublicView(true)} className="fixed bottom-6 right-6 z-[100] gradiente-ouro text-black px-8 py-4 rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-2xl hover:scale-110 active:scale-95 transition-all">VISÃO DO CLIENTE</button>
     </div>
   );
 };
