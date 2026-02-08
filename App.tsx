@@ -11,7 +11,6 @@ import Suggestions from './pages/Suggestions';
 import PublicBooking from './pages/PublicBooking';
 import { useBarberStore } from './store';
 import { LogIn, Sparkles, Sun, Moon, LogOut, UserPlus } from 'lucide-react';
-// Importação do Firebase para o som em tempo real
 import { db } from './firebase';
 import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
 
@@ -24,19 +23,22 @@ const App: React.FC = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [registerData, setRegisterData] = useState({ name: '', phone: '', email: '', password: '' });
 
-  // --- LÓGICA DO SOM DE NOTIFICAÇÃO (ESTILO IFOOD) ---
+  // --- LÓGICA DE NOTIFICAÇÃO SONORA (SINO ESTILO APPLE/IFOOD) ---
   useEffect(() => {
-    // Link do som de alerta (pode ser trocado por qualquer link de áudio)
-    const notificationAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2051/2051-preview.mp3');
+    // Som de sino duplo agudo e profissional
+    const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/3005/3005-preview.mp3');
+    audio.load();
 
     const q = query(collection(db, 'appointments'), orderBy('createdAt', 'desc'), limit(1));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
+      // Evita tocar ao carregar a página (somente para novos itens)
+      if (snapshot.metadata.hasPendingWrites) return;
+
       snapshot.docChanges().forEach((change) => {
-        // Se um agendamento for ADICIONADO e não for o carregamento inicial do cache
         if (change.type === 'added' && !snapshot.metadata.fromCache) {
-          notificationAudio.play().catch(() => {
-            console.log("O som tocará após o seu primeiro clique na página (regra do navegador).");
+          audio.play().catch(() => {
+            console.log("Notificação silenciosa (clique na página para ativar o som).");
           });
         }
       });
@@ -44,19 +46,18 @@ const App: React.FC = () => {
 
     return () => unsubscribe();
   }, []);
-  // --- FIM DA LÓGICA DO SOM ---
 
   const handleLogin = async () => {
     try {
       await login(loginIdentifier, loginPassword);
     } catch (err) {
-      alert("Falha no acesso. Verifique suas credenciais.");
+      alert("Falha no acesso.");
     }
   };
 
   const handleRegister = async () => {
     if (!registerData.name || !registerData.phone || !registerData.password) {
-      alert("Preencha todos os campos obrigatórios.");
+      alert("Preencha os campos!");
       return;
     }
     try {
@@ -66,10 +67,10 @@ const App: React.FC = () => {
         email: registerData.email,
         password: registerData.password
       } as any);
-      alert("Cadastro realizado com sucesso!");
+      alert("Sucesso!");
       setIsRegistering(false);
     } catch (err) {
-      alert("Erro ao realizar cadastro.");
+      alert("Erro.");
     }
   };
 
@@ -93,7 +94,7 @@ const App: React.FC = () => {
           <button onClick={toggleTheme} className={`p-4 rounded-2xl border shadow-2xl transition-all ${theme === 'light' ? 'bg-white border-zinc-200 text-zinc-500' : 'bg-[#D4AF37] text-black border-transparent'}`}>
             {theme === 'dark' ? <Sun size={24} /> : <Moon size={24} />}
           </button>
-          <button onClick={() => setIsPublicView(false)} className={`p-4 rounded-2xl border shadow-2xl transition-all ${theme === 'light' ? 'bg-white border-zinc-200 text-zinc-500' : 'bg-zinc-900 border-white/10 text-white hover:bg-zinc-800'}`}>
+          <button onClick={() => setIsPublicView(false)} className="p-4 rounded-2xl border shadow-2xl bg-zinc-900 border-white/10 text-white hover:bg-zinc-800">
             <LogIn size={24} />
           </button>
         </div>
@@ -126,12 +127,12 @@ const App: React.FC = () => {
           {!isRegistering ? (
             <div className="space-y-6">
               <div className="space-y-4">
-                <input type="text" placeholder="E-MAIL OU WHATSAPP" value={loginIdentifier} onChange={e => setLoginIdentifier(e.target.value)} className={`w-full border p-4 rounded-2xl outline-none focus:border-[#D4AF37] font-bold text-base ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-white/5 border-white/10'}`} />
-                <input type="password" placeholder="SENHA" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} className={`w-full border p-4 rounded-2xl outline-none focus:border-[#D4AF37] font-bold text-base ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-white/5 border-white/10'}`} />
+                <input type="text" placeholder="E-MAIL OU WHATSAPP" value={loginIdentifier} onChange={e => setLoginIdentifier(e.target.value)} className={`w-full border p-4 rounded-2xl outline-none focus:border-[#D4AF37] transition-all font-bold text-base ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-white/5 border-white/10'}`} />
+                <input type="password" placeholder="SENHA" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} className={`w-full border p-4 rounded-2xl outline-none focus:border-[#D4AF37] transition-all font-bold text-base ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-white/5 border-white/10'}`} />
               </div>
-              <button onClick={handleLogin} className="w-full gradiente-ouro text-black py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl transition-all">ACESSAR</button>
+              <button onClick={handleLogin} className="w-full gradiente-ouro text-black py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all">ACESSAR</button>
               <div className="text-center">
-                <button onClick={() => setIsRegistering(true)} className="text-[9px] font-black uppercase tracking-widest text-[#D4AF37] hover:underline transition-all">Novo por aqui? Cadastre-se</button>
+                <button onClick={() => setIsRegistering(true)} className="text-[9px] font-black uppercase tracking-widest text-[#D4AF37] hover:underline">Novo por aqui? Cadastre-se</button>
               </div>
             </div>
           ) : (
@@ -144,7 +145,7 @@ const App: React.FC = () => {
             </div>
           )}
 
-          <button onClick={() => setIsPublicView(true)} className="w-full opacity-40 hover:opacity-100 text-[9px] font-black uppercase tracking-[0.2em] transition-all">Visualizar Site</button>
+          <button onClick={() => setIsPublicView(true)} className="w-full opacity-40 hover:opacity-100 text-[9px] font-black uppercase tracking-[0.2em] transition-all">Sair e voltar ao site</button>
         </div>
       </div>
     );
