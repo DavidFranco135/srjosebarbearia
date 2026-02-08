@@ -1,4 +1,6 @@
-/* Reset e Base Styles */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;/* Reset e Base Styles */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
