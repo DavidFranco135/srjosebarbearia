@@ -1,10 +1,25 @@
-
-import React from 'react';
-import { MessageSquare, Trash2, User, Phone, Calendar } from 'lucide-react';
+import React, { useState } from 'react';
+import { MessageSquare, Trash2, User, Phone, Calendar, Send, CheckCircle2 } from 'lucide-react';
 import { useBarberStore } from '../store';
 
 const Suggestions: React.FC = () => {
-  const { suggestions, deleteSuggestion } = useBarberStore();
+  const { suggestions, deleteSuggestion, updateSuggestion } = useBarberStore();
+  const [replyText, setReplyText] = useState<{ [key: string]: string }>({});
+
+  const handleReply = async (id: string) => {
+    if (!replyText[id]?.trim()) return;
+    try {
+      // Atualiza a sugestão com a resposta do ADM
+      await updateSuggestion(id, { 
+        reply: replyText[id],
+        status: 'read' 
+      });
+      setReplyText(prev => ({ ...prev, [id]: '' }));
+      alert("Resposta enviada!");
+    } catch (error) {
+      alert("Erro ao responder.");
+    }
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20 h-full overflow-auto scrollbar-hide">
@@ -33,7 +48,32 @@ const Suggestions: React.FC = () => {
                 "{sug.text}"
              </div>
 
-             <div className="mt-6 flex items-center justify-between">
+             {/* CAMPO DE RESPOSTA DO ADM */}
+             <div className="mt-6 space-y-3">
+                <div className="relative">
+                  <textarea
+                    value={replyText[sug.id] || sug.reply || ''}
+                    onChange={(e) => setReplyText({ ...replyText, [sug.id]: e.target.value })}
+                    placeholder="Responder ao cliente..."
+                    className="w-full bg-black/40 border border-white/10 p-4 rounded-2xl outline-none focus:border-[#D4AF37]/50 text-xs text-white resize-none transition-all"
+                    rows={2}
+                  />
+                  <button 
+                    onClick={() => handleReply(sug.id)}
+                    className="absolute bottom-3 right-3 p-2 bg-[#D4AF37] text-black rounded-lg hover:scale-110 transition-all"
+                  >
+                    <Send size={14} />
+                  </button>
+                </div>
+                {sug.reply && (
+                  <div className="flex items-center gap-2 px-2">
+                    <CheckCircle2 size={12} className="text-[#D4AF37]" />
+                    <span className="text-[9px] font-black text-[#D4AF37] uppercase tracking-widest">Enviado</span>
+                  </div>
+                )}
+             </div>
+
+             <div className="mt-6 flex items-center justify-between border-t border-white/5 pt-4">
                 <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest flex items-center gap-2"><Calendar size={12}/> Recebida em: {sug.date}</span>
                 <div className="w-8 h-8 rounded-lg bg-[#D4AF37]/5 flex items-center justify-center text-[#D4AF37]/30"><MessageSquare size={14}/></div>
              </div>
