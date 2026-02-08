@@ -25,29 +25,39 @@ const App: React.FC = () => {
 
   // --- LÓGICA DE NOTIFICAÇÃO (SINO APPLE/IFOOD CORRIGIDO PARA PC) ---
   useEffect(() => {
-    // Definimos o áudio globalmente para pré-carregamento no PC
-    const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2638/2638-preview.mp3');
-    audio.preload = 'auto'; // Força o PC a baixar o som assim que abre o site
+    // Som de Sino Duplo Premium (Opção mais audível para PC)
+    const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/3005/3005-preview.mp3');
+    audio.preload = 'auto';
+
+    // Função para destravar o áudio no navegador após o primeiro clique do ADM
+    const unlockAudio = () => {
+      audio.play().then(() => {
+        audio.pause();
+        audio.currentTime = 0;
+        window.removeEventListener('click', unlockAudio);
+      }).catch(() => {});
+    };
+    window.addEventListener('click', unlockAudio);
 
     const q = query(collection(db, 'appointments'), orderBy('createdAt', 'desc'), limit(1));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      // Ignora agendamentos antigos do cache ao atualizar a página
       if (snapshot.metadata.hasPendingWrites) return;
 
       snapshot.docChanges().forEach((change) => {
-        // change.type === 'added' significa que alguém acabou de agendar
         if (change.type === 'added' && !snapshot.metadata.fromCache) {
-          // No PC, tentamos tocar o som. Se falhar, ele avisa no console
-          audio.currentTime = 0; // Reinicia o som caso toque duas vezes seguido
+          audio.currentTime = 0; 
           audio.play().catch(e => {
-            console.warn("Navegador bloqueou o som. Clique na página para habilitar o áudio.");
+            console.warn("Áudio aguardando interação do usuário.");
           });
         }
       });
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      window.removeEventListener('click', unlockAudio);
+    };
   }, []);
   // -----------------------------------------------------------------
 
@@ -78,7 +88,6 @@ const App: React.FC = () => {
     }
   };
 
-  // MANTENDO TODA A SUA ESTRUTURA ORIGINAL ABAIXO
   if (user && user.role === 'CLIENTE') {
     return (
       <div className={`relative min-h-screen theme-transition ${theme === 'light' ? 'bg-[#F8F9FA]' : 'bg-[#050505]'}`}>
