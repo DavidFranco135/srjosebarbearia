@@ -27,7 +27,7 @@ const App: React.FC = () => {
     if (user && user.role === 'ADMIN') {
       if (appointments.length > lastAppointmentCount && lastAppointmentCount > 0) {
         // Toca som de notificação
-        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYHGmW56+ahUBEJTqXh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEK');
+        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYHGmW56+ahUBEJTqXh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEK');
         audio.volume = 0.5;
         audio.play().catch(e => console.log('Não foi possível tocar o som'));
       }
@@ -73,7 +73,7 @@ const App: React.FC = () => {
     return (
       <div className={`relative min-h-screen theme-transition ${theme === 'light' ? 'bg-[#F8F9FA]' : 'bg-[#050505]'}`}>
         <div className="fixed bottom-8 left-8 z-[100] flex gap-3">
-          <button onClick={toggleTheme} className={`p-4 rounded-2xl border shadow-2xl transition-all ${theme === 'light' ? 'bg-white border-zinc-200 text-zinc-500' : 'bg-[#D4AF37] text-black border-transparent'}`}>
+          <button onClick={toggleTheme} className={`p-4 rounded-2xl border shadow-2xl transition-all ${theme === 'light' ? 'bg-white border-zinc-200 text-zinc-600 hover:text-zinc-900' : 'bg-[#D4AF37] text-black border-transparent'}`}>
             {theme === 'dark' ? <Sun size={24} /> : <Moon size={24} />}
           </button>
         </div>
@@ -87,10 +87,10 @@ const App: React.FC = () => {
     return (
       <div className={`relative min-h-screen theme-transition ${theme === 'light' ? 'bg-[#F8F9FA]' : 'bg-[#050505]'}`}>
         <div className="fixed bottom-8 left-8 z-[100] flex gap-3">
-          <button onClick={toggleTheme} className={`p-4 rounded-2xl border shadow-2xl transition-all ${theme === 'light' ? 'bg-white border-zinc-200 text-zinc-500' : 'bg-[#D4AF37] text-black border-transparent'}`}>
+          <button onClick={toggleTheme} className={`p-4 rounded-2xl border shadow-2xl transition-all ${theme === 'light' ? 'bg-white border-zinc-200 text-zinc-600 hover:text-zinc-900' : 'bg-[#D4AF37] text-black border-transparent'}`}>
             {theme === 'dark' ? <Sun size={24} /> : <Moon size={24} />}
           </button>
-          <button onClick={() => setIsPublicView(false)} className={`p-4 rounded-2xl border shadow-2xl transition-all ${theme === 'light' ? 'bg-white border-zinc-200 text-zinc-500' : 'bg-zinc-900 border-white/10 text-white hover:bg-zinc-800'}`}>
+          <button onClick={() => setIsPublicView(false)} className={`p-4 rounded-2xl border shadow-2xl transition-all ${theme === 'light' ? 'bg-white border-zinc-200 text-zinc-600 hover:text-zinc-900' : 'bg-zinc-900 border-white/10 text-white hover:bg-zinc-800'}`}>
             <LogOut size={24} />
           </button>
         </div>
@@ -108,20 +108,20 @@ const App: React.FC = () => {
            <div className={`absolute inset-0 bg-gradient-to-t ${theme === 'light' ? 'from-[#F8F9FA] via-transparent to-[#F8F9FA]' : 'from-[#050505] via-transparent to-[#050505]'}`}></div>
         </div>
 
-        <button onClick={toggleTheme} className={`absolute top-10 right-10 p-4 rounded-2xl border transition-all z-20 ${theme === 'light' ? 'bg-white border-zinc-200 text-zinc-500 shadow-lg' : 'bg-white/5 border-white/10 text-zinc-400'}`}>
+        <button onClick={toggleTheme} className={`absolute top-10 right-10 p-4 rounded-2xl border transition-all z-20 ${theme === 'light' ? 'bg-white border-zinc-200 text-zinc-600 shadow-lg hover:text-zinc-900' : 'bg-white/5 border-white/10 text-zinc-400'}`}>
           {theme === 'dark' ? <Sun size={24} /> : <Moon size={24} />}
         </button>
 
-        <div className="cartao-vidro w-full max-w-lg rounded-[4rem] p-12 md:p-20 space-y-12 animate-in fade-in zoom-in duration-1000 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] relative z-10 border-white/5">
-          <div className="absolute top-0 inset-x-0 h-1.5 gradiente-ouro rounded-t-[4rem]"></div>
+        <div className={`w-full max-w-lg rounded-[4rem] p-12 md:p-20 space-y-12 animate-in fade-in zoom-in duration-1000 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] relative z-10 ${theme === 'light' ? 'bg-white border border-zinc-200' : 'cartao-vidro border-white/5'}`}>
+          <div className={`absolute top-0 inset-x-0 h-1.5 gradiente-ouro rounded-t-[4rem]`}></div>
           
           <div className="text-center space-y-6">
             <div className="w-24 h-24 rounded-3xl mx-auto overflow-hidden shadow-2xl shadow-[#D4AF37]/30 border-2 border-[#D4AF37]/30">
                <img src={config.logo} className="w-full h-full object-cover" alt="Logo/Profile" />
             </div>
             <div className="space-y-2">
-              <h1 className="text-4xl font-black font-display italic tracking-tight">{isRegistering ? 'Criar Conta' : 'Portal Sr. José'}</h1>
-              <p className="opacity-40 text-[10px] font-black uppercase tracking-[0.4em]">{isRegistering ? 'Cadastre-se para agendar' : 'Acesse para gerir ou agendar'}</p>
+              <h1 className={`text-4xl font-black font-display italic tracking-tight ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{isRegistering ? 'Criar Conta' : 'Portal Sr. José'}</h1>
+              <p className={`text-[10px] font-black uppercase tracking-[0.4em] ${theme === 'light' ? 'text-zinc-500' : 'opacity-40'}`}>{isRegistering ? 'Cadastre-se para agendar' : 'Acesse para gerir ou agendar'}</p>
             </div>
           </div>
 
@@ -129,35 +129,35 @@ const App: React.FC = () => {
             <div className="space-y-8">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-2">E-mail ou WhatsApp</label>
-                  <input type="text" placeholder="gestor@srjose.com.br ou (21)..." value={loginIdentifier} onChange={e => setLoginIdentifier(e.target.value)} className={`w-full border p-6 rounded-[2rem] outline-none focus:border-[#D4AF37] transition-all font-bold text-lg ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-white/5 border-white/10'}`} />
+                  <label className={`text-[10px] font-black uppercase tracking-widest ml-2 ${theme === 'light' ? 'text-zinc-600' : 'opacity-40'}`}>E-mail ou WhatsApp</label>
+                  <input type="text" placeholder="gestor@srjose.com.br ou (21)..." value={loginIdentifier} onChange={e => setLoginIdentifier(e.target.value)} className={`w-full border p-6 rounded-[2rem] outline-none focus:border-[#D4AF37] transition-all font-bold text-lg ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400' : 'bg-white/5 border-white/10 text-white'}`} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-2">Senha</label>
-                  <input type="password" placeholder="••••••" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} className={`w-full border p-6 rounded-[2rem] outline-none focus:border-[#D4AF37] transition-all font-bold text-lg ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-white/5 border-white/10'}`} />
+                  <label className={`text-[10px] font-black uppercase tracking-widest ml-2 ${theme === 'light' ? 'text-zinc-600' : 'opacity-40'}`}>Senha</label>
+                  <input type="password" placeholder="••••••" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} className={`w-full border p-6 rounded-[2rem] outline-none focus:border-[#D4AF37] transition-all font-bold text-lg ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400' : 'bg-white/5 border-white/10 text-white'}`} />
                 </div>
               </div>
               <button onClick={handleLogin} className="w-full gradiente-ouro text-black py-7 rounded-[2.5rem] font-black uppercase tracking-[0.2em] text-xs shadow-2xl hover:scale-[1.03] active:scale-[0.97] transition-all">ACESSAR</button>
               <div className="text-center">
-                <button onClick={() => setIsRegistering(true)} className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37] hover:underline">Ainda não tem conta? Cadastre-se</button>
+                <button onClick={() => setIsRegistering(true)} className={`text-[10px] font-black uppercase tracking-widest hover:underline ${theme === 'light' ? 'text-blue-600 hover:text-blue-700' : 'text-[#D4AF37]'}`}>Ainda não tem conta? Cadastre-se</button>
               </div>
             </div>
           ) : (
             <div className="space-y-6">
               <div className="space-y-4">
-                <input type="text" placeholder="Nome Completo" value={registerData.name} onChange={e => setRegisterData({...registerData, name: e.target.value})} className={`w-full border p-5 rounded-2xl outline-none focus:border-[#D4AF37] font-bold ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-white/5 border-white/10'}`} />
-                <input type="tel" placeholder="WhatsApp" value={registerData.phone} onChange={e => setRegisterData({...registerData, phone: e.target.value})} className={`w-full border p-5 rounded-2xl outline-none focus:border-[#D4AF37] font-bold ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-white/5 border-white/10'}`} />
-                <input type="email" placeholder="E-mail" value={registerData.email} onChange={e => setRegisterData({...registerData, email: e.target.value})} className={`w-full border p-5 rounded-2xl outline-none focus:border-[#D4AF37] font-bold ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-white/5 border-white/10'}`} />
-                <input type="password" placeholder="Crie uma Senha" value={registerData.password} onChange={e => setRegisterData({...registerData, password: e.target.value})} className={`w-full border p-5 rounded-2xl outline-none focus:border-[#D4AF37] font-bold ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-white/5 border-white/10'}`} />
+                <input type="text" placeholder="Nome Completo" value={registerData.name} onChange={e => setRegisterData({...registerData, name: e.target.value})} className={`w-full border p-5 rounded-2xl outline-none focus:border-[#D4AF37] font-bold ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400' : 'bg-white/5 border-white/10 text-white'}`} />
+                <input type="tel" placeholder="WhatsApp" value={registerData.phone} onChange={e => setRegisterData({...registerData, phone: e.target.value})} className={`w-full border p-5 rounded-2xl outline-none focus:border-[#D4AF37] font-bold ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400' : 'bg-white/5 border-white/10 text-white'}`} />
+                <input type="email" placeholder="E-mail" value={registerData.email} onChange={e => setRegisterData({...registerData, email: e.target.value})} className={`w-full border p-5 rounded-2xl outline-none focus:border-[#D4AF37] font-bold ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400' : 'bg-white/5 border-white/10 text-white'}`} />
+                <input type="password" placeholder="Crie uma Senha" value={registerData.password} onChange={e => setRegisterData({...registerData, password: e.target.value})} className={`w-full border p-5 rounded-2xl outline-none focus:border-[#D4AF37] font-bold ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400' : 'bg-white/5 border-white/10 text-white'}`} />
               </div>
               <button onClick={handleRegister} className="w-full gradiente-ouro text-black py-6 rounded-[2.5rem] font-black uppercase tracking-widest text-xs shadow-xl">CADASTRAR E CONTINUAR</button>
               <div className="text-center">
-                <button onClick={() => setIsRegistering(false)} className="text-[10px] font-black uppercase tracking-widest opacity-40 hover:opacity-100">Já tem conta? Voltar ao Login</button>
+                <button onClick={() => setIsRegistering(false)} className={`text-[10px] font-black uppercase tracking-widest hover:opacity-100 transition-opacity ${theme === 'light' ? 'text-zinc-600 hover:text-zinc-900' : 'opacity-40'}`}>Já tem conta? Voltar ao Login</button>
               </div>
             </div>
           )}
 
-          <button onClick={() => setIsPublicView(true)} className="w-full opacity-40 hover:opacity-100 hover:text-[#D4AF37] text-[10px] font-black uppercase tracking-[0.3em] transition-all">Visualizar Site (Site Público)</button>
+          <button onClick={() => setIsPublicView(true)} className={`w-full text-[10px] font-black uppercase tracking-[0.3em] transition-all ${theme === 'light' ? 'text-zinc-600 hover:text-blue-600' : 'opacity-40 hover:opacity-100 hover:text-[#D4AF37]'}`}>Visualizar Site (Site Público)</button>
         </div>
       </div>
     );
