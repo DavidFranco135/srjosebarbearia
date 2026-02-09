@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Scissors, Plus, Trash2, Edit2, X, Clock, DollarSign, Check, Search, Upload, ImageIcon, Filter } from 'lucide-react';
 import { useBarberStore } from '../store';
@@ -130,6 +129,10 @@ const Services: React.FC = () => {
                   <div className="md:col-span-2 space-y-1">
                     <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest ml-1">Categoria</label>
                     <input required type="text" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-xs font-bold" />
+                  </div>
+                  <div className="md:col-span-2 space-y-1">
+                    <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest ml-1">Descrição</label>
+                    <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-xs font-bold resize-none h-20" placeholder="Descreva o serviço..."></textarea>
                   </div>
                </div>
                <button type="submit" className="w-full gradiente-ouro text-black py-5 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl">Salvar Ritual</button>
