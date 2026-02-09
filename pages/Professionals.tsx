@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Briefcase, UserPlus, Trash2, Edit2, X, Sparkles, Upload, Clock, DollarSign } from 'lucide-react';
 import { useBarberStore } from '../store';
@@ -15,7 +14,8 @@ const Professionals: React.FC = () => {
     specialties: [],
     avatar: 'https://i.pravatar.cc/150?u=temp',
     commission: 50,
-    workingHours: { start: '08:00', end: '20:00' }
+    workingHours: { start: '08:00', end: '20:00' },
+    description: ''
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,7 +37,7 @@ const Professionals: React.FC = () => {
     setShowModal(false);
     setEditingId(null);
     // Fix: Updated reset state to omit 'likes', aligning with the new Omit type.
-    setFormData({ name: '', specialties: [], avatar: 'https://i.pravatar.cc/150?u=temp', commission: 50, workingHours: { start: '08:00', end: '20:00' } });
+    setFormData({ name: '', specialties: [], avatar: 'https://i.pravatar.cc/150?u=temp', commission: 50, workingHours: { start: '08:00', end: '20:00' }, description: '' });
   };
 
   return (
@@ -78,7 +78,7 @@ const Professionals: React.FC = () => {
               </div>
               <div className="flex-1 bg-white/5 p-4 rounded-2xl border border-white/5">
                 <p className="text-[8px] text-zinc-500 uppercase font-black tracking-widest mb-1">Turno</p>
-                <p className="text-[10px] font-black text-white">{p.workingHours.start} — {p.workingHours.end}</p>
+                <p className="text-[10px] font-black text-white">{p.workingHours.start} – {p.workingHours.end}</p>
               </div>
             </div>
           </div>
@@ -87,7 +87,7 @@ const Professionals: React.FC = () => {
 
       {showModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl animate-in zoom-in-95 duration-300">
-          <div className="cartao-vidro w-full max-w-lg rounded-[3rem] p-12 space-y-10 border-[#D4AF37]/10 shadow-2xl relative">
+          <div className="cartao-vidro w-full max-w-lg rounded-[3rem] p-12 space-y-10 border-[#D4AF37]/10 shadow-2xl relative max-h-[90vh] overflow-y-auto scrollbar-hide">
             <div className="flex justify-between items-center">
               <h2 className="text-3xl font-black font-display italic">{editingId ? 'Refinar Perfil' : 'Novo Recrutamento'}</h2>
               <button onClick={() => setShowModal(false)} className="text-zinc-500 hover:text-white"><X size={24} /></button>
@@ -109,6 +109,19 @@ const Professionals: React.FC = () => {
                 <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Nome Artístico</label>
                 <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white font-bold" />
               </div>
+              
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">História / Descrição</label>
+                <textarea 
+                  rows={4} 
+                  value={formData.description || ''} 
+                  onChange={e => setFormData({...formData, description: e.target.value})} 
+                  placeholder="Conte a história e especialidades deste profissional..."
+                  className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white font-medium resize-none"
+                />
+                <p className="text-[8px] text-zinc-600 font-black uppercase tracking-widest ml-1">Aparecerá ao cliente clicar na foto</p>
+              </div>
+
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Comissão (%)</label>
