@@ -23,6 +23,7 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   
   const [loginIdentifier, setLoginIdentifier] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
   const [loggedClient, setLoggedClient] = useState<Client | null>(null);
   const [bookingError, setBookingError] = useState<string | null>(null);
 
@@ -95,18 +96,49 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
   };
 
   const handleLoginPortal = () => {
-    if(!loginIdentifier) return;
+    if(!loginIdentifier || !loginPassword) {
+      alert("Preencha e-mail/celular e senha.");
+      return;
+    }
     const cleanId = loginIdentifier.toLowerCase().replace(/\D/g, '');
     const client = clients.find(c => c.email.toLowerCase() === loginIdentifier.toLowerCase() || c.phone.replace(/\D/g, '') === cleanId);
     
-    if (client) {
+    if (client && client.password === loginPassword) {
       setLoggedClient(client);
       setEditData({ name: client.name, phone: client.phone, email: client.email });
       setNewReview(prev => ({ ...prev, userName: client.name, clientPhone: client.phone }));
       setView('CLIENT_DASHBOARD');
+      setLoginPassword(''); // Limpa senha após login
+    } else if (client && client.password !== loginPassword) {
+      alert("Senha incorreta.");
     } else {
       alert("Membro não encontrado. Verifique seu e-mail ou celular cadastrado.");
     }
+  };
+
+  const handleLikeProfessional = (profId: string) => {
+    if (!loggedClient) {
+      alert("Faça login para curtir um barbeiro.");
+      return;
+    }
+    
+    // Verifica se o cliente já curtiu este profissional
+    const alreadyLiked = loggedClient.likedProfessionals?.includes(profId);
+    
+    if (alreadyLiked) {
+      alert("Você já curtiu este barbeiro!");
+      return;
+    }
+    
+    // Adiciona like
+    likeProfessional(profId);
+    
+    // Atualiza lista de profissionais curtidos pelo cliente
+    const updatedLikedProfessionals = [...(loggedClient.likedProfessionals || []), profId];
+    updateClient(loggedClient.id, { likedProfessionals: updatedLikedProfessionals });
+    setLoggedClient({ ...loggedClient, likedProfessionals: updatedLikedProfessionals });
+    
+    alert("Curtida registrada com sucesso!");
   };
 
   const handleUpdateProfilePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -335,6 +367,16 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
                    <Instagram size={20}/> Siga no Instagram
                 </a>
              </section>
+
+             {/* 8. Quem Somos */}
+             <section className="mb-24">
+                <h2 className={`text-2xl font-black font-display italic mb-10 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{config.aboutTitle || 'Quem Somos'} <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
+                <div className={`rounded-[2.5rem] p-8 md:p-12 ${theme === 'light' ? 'bg-white border border-zinc-200' : 'cartao-vidro border-white/5'}`}>
+                   <p className={`text-base leading-relaxed ${theme === 'light' ? 'text-zinc-700' : 'text-zinc-300'}`}>
+                      {config.aboutText || 'Tradição, estilo e excelência em cada serviço. Nossa barbearia é mais que um lugar para cortar cabelo - é um espaço de encontro, cultura e cuidado pessoal.'}
+                   </p>
+                </div>
+             </section>
           </main>
 
           <footer className={`py-10 text-center border-t ${theme === 'light' ? 'border-zinc-200 bg-zinc-50 text-zinc-600' : 'border-white/5 bg-white/[0.01] text-zinc-600'}`}>
@@ -353,6 +395,7 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
               </div>
               <div className="space-y-6">
                  <input type="text" placeholder="E-mail ou WhatsApp" value={loginIdentifier} onChange={e => setLoginIdentifier(e.target.value)} className={`w-full border p-5 rounded-2xl outline-none font-bold transition-all ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus:border-blue-500' : 'bg-white/5 border-white/10 text-white focus:border-[#D4AF37]'}`} />
+                 <input type="password" placeholder="Senha" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} className={`w-full border p-5 rounded-2xl outline-none font-bold transition-all ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus:border-blue-500' : 'bg-white/5 border-white/10 text-white focus:border-[#D4AF37]'}`} />
                  <button onClick={handleLoginPortal} className="w-full gradiente-ouro text-black py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-2xl hover:scale-105 transition-all">ACESSAR PORTAL</button>
               </div>
               <button onClick={() => setView('HOME')} className={`w-full text-[10px] font-black uppercase tracking-widest transition-all ${theme === 'light' ? 'text-zinc-600 hover:text-zinc-900' : 'text-zinc-600 hover:text-[#D4AF37]'}`}>Voltar ao Início</button>
@@ -403,6 +446,42 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
                        <Star size={14} className="inline mr-2"/> Deixar Avaliação
                     </button>
                  </div>
+              </div>
+           </div>
+
+           {/* Curtir Barbeiros */}
+           <div className={`rounded-[2rem] p-8 mb-10 ${theme === 'light' ? 'bg-white border border-zinc-200' : 'cartao-vidro border-white/5'}`}>
+              <h3 className={`text-lg font-black font-display italic mb-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Nossos Barbeiros</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                 {professionals.map(prof => {
+                    const isLiked = loggedClient.likedProfessionals?.includes(prof.id);
+                    return (
+                      <div key={prof.id} className={`rounded-2xl p-4 text-center space-y-3 transition-all ${theme === 'light' ? 'bg-zinc-50 border border-zinc-200' : 'bg-white/5 border border-white/10'}`}>
+                         <div className="relative mx-auto w-20 h-20">
+                            <img src={prof.avatar} className="w-full h-full rounded-xl object-cover border-2 border-[#B8860B]" alt="" />
+                         </div>
+                         <div>
+                            <p className={`font-bold text-sm ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{prof.name}</p>
+                            <p className={`text-[8px] uppercase tracking-widest font-black mt-1 ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'}`}>{prof.specialty}</p>
+                         </div>
+                         <button 
+                           onClick={() => handleLikeProfessional(prof.id)} 
+                           disabled={isLiked}
+                           className={`w-full py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
+                             isLiked 
+                               ? 'bg-emerald-500 text-white cursor-not-allowed' 
+                               : 'gradiente-ouro text-black hover:scale-105'
+                           }`}
+                         >
+                            {isLiked ? (
+                              <><Check size={10} className="inline mr-1"/> Curtido</>
+                            ) : (
+                              <><Heart size={10} className="inline mr-1"/> Curtir</>
+                            )}
+                         </button>
+                      </div>
+                    );
+                 })}
               </div>
            </div>
 
