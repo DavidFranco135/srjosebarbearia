@@ -3,7 +3,7 @@ import { Save, Store, Upload, ImageIcon, User as UserIcon, Trash2, Plus, Info, C
 import { useBarberStore } from '../store';
 
 const Settings: React.FC = () => {
-  const { config, updateConfig, user, updateUser } = useBarberStore();
+  const { config, updateConfig, user, updateUser, resetAllLikes } = useBarberStore();
   const [formData, setFormData] = useState({ ...config });
   const [userData, setUserData] = useState({ 
     name: user?.name || '', 
@@ -164,6 +164,23 @@ const Settings: React.FC = () => {
                  </div>
                ))}
             </div>
+          </div>
+
+          <div className="cartao-vidro rounded-[3.5rem] p-10 md:p-14 border-white/10 space-y-6">
+            <h3 className="text-2xl font-black font-display italic flex items-center gap-4"><UserIcon className="text-[#D4AF37]" /> Gestão de Barbeiros</h3>
+            <p className="text-sm text-zinc-400">Reinicie os contadores de curtidas de todos os profissionais.</p>
+            <button 
+              type="button"
+              onClick={async () => {
+                if (confirm('Tem certeza que deseja reiniciar todos os contadores de curtidas dos barbeiros?')) {
+                  await resetAllLikes();
+                  alert('Contadores de curtidas reiniciados com sucesso!');
+                }
+              }}
+              className="w-full bg-red-500/20 border-2 border-red-500/40 text-red-400 px-8 py-5 rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-red-500/30 transition-all"
+            >
+              Reiniciar Contadores de Curtidas
+            </button>
           </div>
         </div>
 
