@@ -76,7 +76,7 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
     if (!isDragging || !ref.current) return;
     e.preventDefault();
     const x = e.pageX - ref.current.offsetLeft;
-    const walk = (x - startX) * 1;
+    const walk = (x - startX) * 2;
     ref.current.scrollLeft = scrollLeft - walk;
   };
 
@@ -386,14 +386,14 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                    {professionals.map(prof => (
                       <div key={prof.id} className={`rounded-[2rem] p-6 text-center space-y-4 group transition-all hover:scale-105 ${theme === 'light' ? 'bg-white border border-zinc-200 hover:border-blue-300' : 'cartao-vidro border-white/5 hover:border-[#D4AF37]/30'}`}>
-                         <div className="relative mx-auto w-24 h-24 flex items-center gap-2 justify-center">
+                         <div className="relative mx-auto w-24 h-24 flex items-center justify-center">
                             <img 
                               src={prof.avatar} 
                               className="w-full h-full rounded-2xl object-cover border-2 border-[#D4AF37] cursor-pointer" 
                               alt="" 
                               onClick={() => { setSelectedProfessional(prof); setShowProfessionalModal(true); }}
                             />
-                            <div className="absolute -right-6 top-0 text-red-500 text-xs font-black flex items-center gap-0.5">
+                            <div className="absolute -right-10 top-1 text-red-500 text-xs font-black flex items-center gap-0.5 whitespace-nowrap">
                                <Heart size={12} fill="currentColor" /> <span className="text-red-500">{prof.likes || 0}</span>
                             </div>
                          </div>
@@ -528,14 +528,14 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
                     const isLiked = loggedClient.likedProfessionals?.includes(prof.id);
                     return (
                       <div key={prof.id} className={`rounded-2xl p-4 text-center space-y-3 transition-all ${theme === 'light' ? 'bg-zinc-50 border border-zinc-200' : 'bg-white/5 border border-white/10'}`}>
-                         <div className="relative mx-auto w-20 h-20 flex items-center gap-1 justify-center">
+                         <div className="relative mx-auto w-20 h-20 flex items-center justify-center">
                             <img 
                               src={prof.avatar} 
                               className="w-full h-full rounded-xl object-cover border-2 border-[#B8860B] cursor-pointer" 
                               alt="" 
                               onClick={() => { setSelectedProfessional(prof); setShowProfessionalModal(true); }}
                             />
-                            <div className="absolute -right-5 top-0 text-red-500 text-[8px] font-black flex items-center gap-0.5">
+                            <div className="absolute -right-8 top-0.5 text-red-500 text-[8px] font-black flex items-center gap-0.5 whitespace-nowrap">
                                <Heart size={8} fill="currentColor"/> <span className="text-red-500">{prof.likes || 0}</span>
                             </div>
                          </div>
