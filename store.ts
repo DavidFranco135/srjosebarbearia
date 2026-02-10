@@ -255,6 +255,15 @@ export function BarberProvider({ children }: { children?: ReactNode }) {
       ...data,
       date: new Date().toLocaleDateString('pt-BR')
     });
+    // Criar notificação para ADM
+    await addDoc(collection(db, COLLECTIONS.NOTIFICATIONS), {
+      title: 'Nova Sugestão',
+      message: `${data.clientName} enviou uma sugestão`,
+      time: new Date().toISOString(),
+      read: false,
+      type: 'suggestion',
+      clientPhone: data.clientPhone
+    });
   };
 
   const updateSuggestion = async (id: string, data: any) => {
