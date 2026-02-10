@@ -276,7 +276,6 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
               </div>
             </div>
             
-            {/* Abas de navegação: Painel e Planos VIP */}
             <div className="flex gap-4">
               <button 
                 onClick={() => setActiveTab('HOME')} 
@@ -417,7 +416,7 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
 
               {/* Plano Anual */}
               <div className={`rounded-[3rem] p-10 border-2 relative overflow-hidden ${theme === 'light' ? 'bg-gradient-to-br from-[#D4AF37]/5 to-white border-[#D4AF37] shadow-xl' : 'bg-gradient-to-br from-[#D4AF37]/10 to-black/50 border-[#D4AF37]'}`}>
-                <div className="absolute top-6 right-6 bg-[#D4AF37] text-black px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest">
+                <div className="absolute top-6 right-6 bg-[#D4AF37] text-black border px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest">
                   Mais Popular
                 </div>
                 
@@ -813,6 +812,7 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
                </div>
               )}
            </div>
+          </div>
         </div>
       )}
 
@@ -891,7 +891,6 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
            </div>
         </div>
       )}
-
     </div>
   );
 };
