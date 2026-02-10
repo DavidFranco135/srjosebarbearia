@@ -254,15 +254,32 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
              {/* 1. Destaques da Casa */}
              <section className="mb-20 pt-10">
                 <h2 className={`text-2xl font-black font-display italic mb-8 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Destaques da Casa <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
-                <div 
-                  ref={destaqueRef}
-                  className="flex gap-4 overflow-x-auto pb-6 snap-x cursor-grab active:cursor-grabbing scrollbar-hide"
-                  style={{ scrollBehavior: 'smooth' }}
-                  onMouseDown={(e) => handleMouseDown(e, destaqueRef)}
-                  onMouseLeave={handleMouseLeave}
-                  onMouseUp={handleMouseUp}
-                  onMouseMove={(e) => handleMouseMove(e, destaqueRef)}
-                >
+                <div className="relative group">
+                  {/* Seta Esquerda */}
+                  <button 
+                    onClick={() => destaqueRef.current?.scrollBy({ left: -300, behavior: 'smooth' })}
+                    className={`hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-xl ${theme === 'light' ? 'bg-white border-2 border-zinc-300 text-zinc-900 hover:bg-zinc-50' : 'bg-black/50 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-black/70'}`}
+                  >
+                    <ChevronLeft size={24} />
+                  </button>
+                  
+                  {/* Seta Direita */}
+                  <button 
+                    onClick={() => destaqueRef.current?.scrollBy({ left: 300, behavior: 'smooth' })}
+                    className={`hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-xl ${theme === 'light' ? 'bg-white border-2 border-zinc-300 text-zinc-900 hover:bg-zinc-50' : 'bg-black/50 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-black/70'}`}
+                  >
+                    <ChevronRight size={24} />
+                  </button>
+                  
+                  <div 
+                    ref={destaqueRef}
+                    className="flex gap-4 overflow-x-auto pb-6 snap-x cursor-grab active:cursor-grabbing scrollbar-hide"
+                    style={{ scrollBehavior: 'smooth' }}
+                    onMouseDown={(e) => handleMouseDown(e, destaqueRef)}
+                    onMouseLeave={handleMouseLeave}
+                    onMouseUp={handleMouseUp}
+                    onMouseMove={(e) => handleMouseMove(e, destaqueRef)}
+                  >
                    {services.slice(0, 6).map(svc => (
                      <div key={svc.id} className={`snap-center flex-shrink-0 w-64 md:w-72 rounded-[2.5rem] overflow-hidden group shadow-2xl transition-all ${theme === 'light' ? 'bg-white border border-zinc-200 hover:border-blue-300' : 'cartao-vidro border-white/5 hover:border-[#D4AF37]/30'}`}>
                         <div className="h-48 overflow-hidden"><img src={svc.image} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700" alt="" /></div>
@@ -274,6 +291,7 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
                      </div>
                    ))}
                 </div>
+              </div>
              </section>
 
              {/* 2. Nossos Rituais - CATEGORIAS EXPANSÍVEIS */}
@@ -332,15 +350,32 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
              {/* 3. A Experiência Signature (Galeria) */}
              <section className="mb-24">
                 <h2 className={`text-2xl font-black font-display italic mb-8 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>A Experiência Signature <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
-                <div 
-                  ref={experienciaRef}
-                  className="flex gap-4 overflow-x-auto pb-6 snap-x cursor-grab active:cursor-grabbing scrollbar-hide"
-                  style={{ scrollBehavior: 'smooth' }}
-                  onMouseDown={(e) => handleMouseDown(e, experienciaRef)}
-                  onMouseLeave={handleMouseLeave}
-                  onMouseUp={handleMouseUp}
-                  onMouseMove={(e) => handleMouseMove(e, experienciaRef)}
-                >
+                <div className="relative group">
+                  {/* Seta Esquerda */}
+                  <button 
+                    onClick={() => experienciaRef.current?.scrollBy({ left: -500, behavior: 'smooth' })}
+                    className={`hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-xl ${theme === 'light' ? 'bg-white border-2 border-zinc-300 text-zinc-900 hover:bg-zinc-50' : 'bg-black/50 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-black/70'}`}
+                  >
+                    <ChevronLeft size={24} />
+                  </button>
+                  
+                  {/* Seta Direita */}
+                  <button 
+                    onClick={() => experienciaRef.current?.scrollBy({ left: 500, behavior: 'smooth' })}
+                    className={`hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-xl ${theme === 'light' ? 'bg-white border-2 border-zinc-300 text-zinc-900 hover:bg-zinc-50' : 'bg-black/50 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-black/70'}`}
+                  >
+                    <ChevronRight size={24} />
+                  </button>
+                  
+                  <div 
+                    ref={experienciaRef}
+                    className="flex gap-4 overflow-x-auto pb-6 snap-x cursor-grab active:cursor-grabbing scrollbar-hide"
+                    style={{ scrollBehavior: 'smooth' }}
+                    onMouseDown={(e) => handleMouseDown(e, experienciaRef)}
+                    onMouseLeave={handleMouseLeave}
+                    onMouseUp={handleMouseUp}
+                    onMouseMove={(e) => handleMouseMove(e, experienciaRef)}
+                  >
                    {(Array.isArray(config.gallery) ? config.gallery : []).map((img, i) => (
                      <div key={i} className={`snap-center flex-shrink-0 w-80 md:w-[500px] h-64 md:h-80 rounded-[2.5rem] overflow-hidden shadow-2xl transition-all hover:scale-[1.02] ${theme === 'light' ? 'border-4 border-zinc-200' : 'border-4 border-white/5'}`}>
                         <img src={img} className="w-full h-full object-cover" alt="" />
@@ -348,20 +383,38 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
                    ))}
                    {(!config.gallery || config.gallery.length === 0) && <p className={`italic py-10 ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'}`}>Em breve, novas fotos do nosso ambiente.</p>}
                 </div>
+              </div>
              </section>
 
              {/* 4. Voz dos Membros (Avaliações) */}
              <section className="mb-24 py-10 -mx-6 px-6 bg-black">
                 <h2 className={`text-2xl font-black font-display italic mb-10 flex items-center gap-6 text-white`}>Voz dos Membros <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
-                <div 
-                  ref={membroRef}
-                  className="flex gap-6 overflow-x-auto pb-6 snap-x cursor-grab active:cursor-grabbing scrollbar-hide"
-                  style={{ scrollBehavior: 'smooth' }}
-                  onMouseDown={(e) => handleMouseDown(e, membroRef)}
-                  onMouseLeave={handleMouseLeave}
-                  onMouseUp={handleMouseUp}
-                  onMouseMove={(e) => handleMouseMove(e, membroRef)}
-                >
+                <div className="relative group">
+                  {/* Seta Esquerda */}
+                  <button 
+                    onClick={() => membroRef.current?.scrollBy({ left: -400, behavior: 'smooth' })}
+                    className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-all shadow-xl"
+                  >
+                    <ChevronLeft size={24} />
+                  </button>
+                  
+                  {/* Seta Direita */}
+                  <button 
+                    onClick={() => membroRef.current?.scrollBy({ left: 400, behavior: 'smooth' })}
+                    className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-all shadow-xl"
+                  >
+                    <ChevronRight size={24} />
+                  </button>
+                  
+                  <div 
+                    ref={membroRef}
+                    className="flex gap-6 overflow-x-auto pb-6 snap-x cursor-grab active:cursor-grabbing scrollbar-hide"
+                    style={{ scrollBehavior: 'smooth' }}
+                    onMouseDown={(e) => handleMouseDown(e, membroRef)}
+                    onMouseLeave={handleMouseLeave}
+                    onMouseUp={handleMouseUp}
+                    onMouseMove={(e) => handleMouseMove(e, membroRef)}
+                  >
                    {config.reviews?.length === 0 && <p className={`italic py-10 text-center w-full text-zinc-500`}>Aguardando seu feedback para brilhar aqui.</p>}
                    {config.reviews?.map((rev, i) => (
                       <div key={i} className={`snap-center flex-shrink-0 w-80 p-8 rounded-[2rem] relative group cartao-vidro border-white/5`}>
@@ -381,6 +434,7 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
                       </div>
                    ))}
                 </div>
+              </div>
              </section>
 
              {/* 5. Nossos Artífices */}
