@@ -28,102 +28,95 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
     { id: 'settings', label: 'Ajustes Master', icon: Settings },
   ];
 
-  const unreadCount = notifications.filter(n => !n.read).length;
-
   return (
-    <div className={`flex h-screen overflow-hidden selection:bg-[#66360f]/30 ${theme === 'light' ? 'bg-[#F3F4F6]' : 'bg-[#050505]'}`}>
-      
-      {/* Sidebar Mobile Overlay */}
-      {isSidebarOpen && (
-        <div className="fixed inset-0 bg-black/80 z-[60] lg:hidden backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)} />
-      )}
-
-      {/* Sidebar */}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-[70] theme-transition border-r flex flex-col ${isSidebarOpen ? 'translate-x-0 w-[85vw]' : '-translate-x-full lg:translate-x-0'} ${isCollapsed ? 'w-24' : 'w-72'} ${theme === 'light' ? 'bg-white border-zinc-300' : 'bg-[#0A0A0A] border-white/5'}`}>
-        <div className="p-8 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 min-w-[3rem] rounded-2xl flex items-center justify-center shadow-lg" style={{ backgroundColor: '#66360f' }}>
-              <Sparkles className="text-white w-6 h-6" />
-            </div>
-            {!isCollapsed && <h1 className={`text-xl font-black font-display italic tracking-tight theme-transition ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Sr. José</h1>}
-          </div>
-          <button onClick={() => setIsCollapsed(!isCollapsed)} className={`hidden lg:flex p-2 transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-zinc-900' : 'text-zinc-500 hover:text-[#D4AF37]'}`}>
-            {isCollapsed ? <ChevronRight size={20}/> : <ChevronLeft size={20}/>}
-          </button>
-          <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden p-2 text-zinc-500"><X /></button>
-        </div>
-
-        <nav className="flex-1 px-4 space-y-2 mt-4 overflow-y-auto scrollbar-hide">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <button 
-                key={item.id} 
-                onClick={() => { setActiveTab(item.id); setIsSidebarOpen(false); }} 
-                className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all group ${isActive ? 'text-white font-black shadow-lg' : 'hover:bg-black/5 text-zinc-500'} ${isCollapsed ? 'justify-center' : ''}`}
-                style={isActive ? { backgroundColor: '#66360f' } : {}}
-                title={isCollapsed ? item.label : ''}
-              >
-                <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-800'}`} />
-                {!isCollapsed && <span className={`text-sm uppercase tracking-widest truncate ${isActive ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-800'}`}>{item.label}</span>}
-              </button>
-            );
-          })}
-        </nav>
-
-        <div className="p-4 mt-auto">
-          <div className={`flex items-center gap-4 p-4 rounded-3xl border ${theme === 'light' ? 'bg-zinc-100 border-zinc-300' : 'bg-white/[0.03] border-white/5'}`}>
-            <div className="w-10 h-10 min-w-[2.5rem] rounded-xl overflow-hidden">
-               <img src={user?.avatar} className="w-full h-full object-cover" alt="User" />
-            </div>
+    <div className={`flex h-screen overflow-hidden ${theme === 'light' ? 'bg-[#F3F4F6]' : 'bg-[#050505]'}`}>
+      {/* Sidebar - Aplicando gradiente e cores do site público */}
+      <aside className={`fixed inset-y-0 left-0 z-50 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0 transition-all duration-300 ease-in-out ${isCollapsed ? 'lg:w-20' : 'lg:w-72'} ${theme === 'light' ? 'bg-white border-r border-zinc-200' : 'bg-[#0A0A0A] border-r border-white/5'}`}>
+        <div className="flex flex-col h-full">
+          <div className="p-6 flex items-center justify-between">
             {!isCollapsed && (
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs font-black truncate ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{user?.name}</p>
-                <p className={`text-[10px] font-bold uppercase tracking-widest ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'}`}>Admin</p>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 gradiente-ouro rounded-lg flex items-center justify-center">
+                  <Scissors size={18} className="text-black" />
+                </div>
+                <span className={`font-black italic text-xl tracking-tighter ${theme === 'light' ? 'text-black' : 'text-white'}`}>ADMIN</span>
               </div>
             )}
-            <button onClick={logout} className="text-zinc-500 hover:text-red-500 shrink-0"><LogOut size={20} /></button>
+            <button onClick={() => setIsCollapsed(!isCollapsed)} className={`hidden lg:flex p-2 rounded-xl hover:bg-white/5 ${theme === 'light' ? 'text-zinc-400' : 'text-zinc-500'}`}>
+              <ChevronLeft className={`transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`} />
+            </button>
+            <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-zinc-500">
+              <X size={24} />
+            </button>
+          </div>
+
+          <nav className="flex-1 px-4 space-y-2 mt-4 overflow-y-auto scrollbar-hide">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => { setActiveTab(item.id); setIsSidebarOpen(false); }}
+                  className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all duration-300 group ${
+                    isActive 
+                      ? 'gradiente-ouro text-black shadow-lg shadow-[#D4AF37]/20' 
+                      : theme === 'light' ? 'text-zinc-500 hover:bg-zinc-100' : 'text-zinc-500 hover:bg-white/5'
+                  }`}
+                >
+                  <Icon size={22} className={`${isActive ? 'text-black' : 'group-hover:text-[#D4AF37] transition-colors'}`} />
+                  {!isCollapsed && <span className="font-black text-[11px] uppercase tracking-widest">{item.label}</span>}
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="p-4 border-t border-white/5">
+            <button onClick={logout} className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-red-500 hover:bg-red-500/10 transition-all`}>
+              <LogOut size={22} />
+              {!isCollapsed && <span className="font-black text-[11px] uppercase tracking-widest">Sair do Painel</span>}
+            </button>
           </div>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        <header className={`h-24 backdrop-blur-xl border-b flex items-center justify-between px-6 z-40 theme-transition ${theme === 'light' ? 'bg-white/90 border-zinc-300' : 'bg-[#050505]/95 border-white/5'}`}>
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <header className={`h-20 flex items-center justify-between px-6 md:px-10 border-b ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-[#0A0A0A] border-white/5'}`}>
           <div className="flex items-center gap-4">
-             <button className={`lg:hidden p-2 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`} onClick={() => setIsSidebarOpen(true)}><Menu size={28} /></button>
-             <h2 className={`text-lg md:text-2xl font-black font-display italic truncate ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{menuItems.find(i => i.id === activeTab)?.label}</h2>
+            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 text-zinc-500 hover:bg-white/5 rounded-xl">
+              <Menu size={24} />
+            </button>
+            <h2 className={`text-sm font-black uppercase tracking-[0.2em] ${theme === 'light' ? 'text-zinc-400' : 'text-zinc-500'}`}>
+              {menuItems.find(i => i.id === activeTab)?.label}
+            </h2>
           </div>
 
           <div className="flex items-center gap-3">
-            <button onClick={toggleTheme} className={`p-3 rounded-2xl border transition-all ${theme === 'light' ? 'bg-zinc-100 border-zinc-300 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
-              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            <button onClick={toggleTheme} className={`p-3 rounded-2xl border transition-all ${theme === 'light' ? 'bg-zinc-100 border-zinc-200 text-zinc-600' : 'bg-white/5 border-white/10 text-zinc-400 hover:text-[#D4AF37]'}`}>
+              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
             </button>
-
+            
             <div className="relative">
-              <button onClick={() => setShowNotifs(!showNotifs)} className={`p-3 rounded-2xl border transition-all relative ${theme === 'light' ? 'bg-zinc-100 border-zinc-300 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
-                <Bell size={20} />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 text-white text-[10px] font-black rounded-full flex items-center justify-center ring-4 ring-current" style={{ backgroundColor: '#66360f' }}>
-                    {unreadCount}
-                  </span>
+              <button onClick={() => setShowNotifs(!showNotifs)} className={`p-3 rounded-2xl border transition-all relative ${theme === 'light' ? 'bg-zinc-100 border-zinc-200 text-zinc-600' : 'bg-white/5 border-white/10 text-zinc-400 hover:text-[#D4AF37]'}`}>
+                <Bell size={18} />
+                {notifications.filter(n => !n.read).length > 0 && (
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[#0A0A0A]"></span>
                 )}
               </button>
-
+              
               {showNotifs && (
                 <>
-                  <div className="fixed inset-0 z-50 lg:hidden" onClick={() => setShowNotifs(false)} />
-                  <div className={`absolute right-0 mt-4 w-[90vw] sm:w-96 rounded-[2.5rem] border shadow-2xl z-[60] overflow-hidden ${theme === 'light' ? 'bg-white border-zinc-300' : 'bg-[#0F0F0F] border-white/10'}`}>
-                    <div className="p-6 border-b border-white/5 flex items-center justify-between bg-black/5">
-                       <p className={`text-xs font-black uppercase tracking-widest ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Notificações</p>
-                       <button onClick={clearNotifications} className="text-zinc-500 hover:text-red-500"><Trash2 size={16}/></button>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowNotifs(false)}></div>
+                  <div className={`absolute right-0 mt-4 w-80 rounded-[2rem] shadow-2xl z-50 border overflow-hidden animate-in slide-in-from-top-2 ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-[#111111] border-white/10'}`}>
+                    <div className="p-6 border-b border-white/5 flex justify-between items-center bg-[#D4AF37]">
+                       <h3 className="text-xs font-black text-black uppercase">Notificações</h3>
+                       <button onClick={clearNotifications} className="text-black/50 hover:text-black transition-colors"><Trash2 size={14}/></button>
                     </div>
                     <div className="max-h-96 overflow-y-auto scrollbar-hide">
                        {notifications.length === 0 && <p className="p-10 text-center text-xs text-zinc-500 italic">Nada por aqui.</p>}
                        {notifications.map(n => (
-                         <div key={n.id} onClick={() => { markNotificationAsRead(n.id); setShowNotifs(false); setActiveTab('appointments'); }} className={`p-6 border-b border-white/5 hover:bg-black/5 cursor-pointer transition-all ${!n.read ? 'bg-black/5 border-l-4 border-l-[#66360f]' : ''}`}>
-                            <p className={`text-xs font-black ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{n.title}</p>
+                         <div key={n.id} onClick={() => { markNotificationAsRead(n.id); setShowNotifs(false); setActiveTab('appointments'); }} className={`p-6 border-b border-white/5 hover:bg-white/5 cursor-pointer transition-all ${!n.read ? 'bg-[#D4AF37]/5 border-l-4 border-l-[#D4AF37]' : ''}`}>
+                            <p className="text-xs font-black text-[#D4AF37]">{n.title}</p>
                             <p className={`text-[11px] mt-1 leading-relaxed ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-400'}`}>{n.message}</p>
                             <p className="text-[9px] text-zinc-500 mt-2 font-bold">{n.time}</p>
                          </div>
@@ -134,20 +127,18 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
               )}
             </div>
             
-            <button 
-              onClick={() => setActiveTab('appointments')} 
-              className="px-5 py-3 rounded-2xl text-white font-black text-xs uppercase hidden sm:block shadow-lg"
-              style={{ backgroundColor: '#66360f' }}
-            >
+            <button onClick={() => setActiveTab('appointments')} className="gradiente-ouro px-5 py-3 rounded-2xl text-black font-black text-xs uppercase hidden sm:block shadow-lg hover:scale-105 transition-all">
                Agendar
             </button>
           </div>
         </header>
 
         <div className="flex-1 overflow-y-auto p-4 md:p-10 scrollbar-hide">
-          <div className="max-w-7xl mx-auto h-full">{children}</div>
+          <div className="max-w-7xl mx-auto h-full">
+            {children}
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
