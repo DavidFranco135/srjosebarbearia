@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Save, Store, Upload, ImageIcon, User as UserIcon, Trash2, Plus, Info, Clock, MapPin, Share2 } from 'lucide-react';
+import { Save, Store, Upload, ImageIcon, User as UserIcon, Trash2, Plus, Info, Clock, MapPin, Share2, RotateCcw } from 'lucide-react';
 import { useBarberStore } from '../store';
 
 const Settings: React.FC = () => {
-  const { config, updateConfig, user, updateUser, resetAllLikes } = useBarberStore();
+  const { config, updateConfig, user, updateUser, resetAllLikes, theme } = useBarberStore();
   const [formData, setFormData] = useState({ ...config });
   const [userData, setUserData] = useState({ 
     name: user?.name || '', 
@@ -71,8 +71,8 @@ const Settings: React.FC = () => {
     <div className="space-y-10 animate-in fade-in duration-500 pb-20 h-full overflow-auto scrollbar-hide">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black text-color-main font-display italic tracking-tight">Painel Master</h1>
-          <p className="text-color-sec text-[11px] font-black uppercase tracking-widest opacity-60">Configurações Avançadas Sr. José</p>
+          <h1 className={`text-4xl font-black font-display italic tracking-tight ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Painel Master</h1>
+          <p className={`text-[11px] font-black uppercase tracking-widest opacity-60 ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-400'}`}>Configurações Avançadas Sr. José</p>
         </div>
         <button form="settings-form" type="submit" disabled={loading} className="flex items-center justify-center gap-4 gradiente-ouro text-black px-12 py-5 rounded-[2.5rem] font-black text-xs uppercase tracking-widest shadow-2xl hover:scale-105 transition-all">
           {loading ? 'Sincronizando...' : <><Save size={20} /> Gravar Tudo</>}
@@ -81,8 +81,8 @@ const Settings: React.FC = () => {
 
       <form id="settings-form" onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         <div className="lg:col-span-2 space-y-10">
-          <div className="cartao-vidro rounded-[3.5rem] p-10 md:p-14 border-white/10 space-y-10">
-            <h3 className="text-2xl font-black font-display italic flex items-center gap-4"><UserIcon className="text-[#D4AF37]" /> Perfil Master</h3>
+          <div className={`rounded-[3.5rem] p-10 md:p-14 border-2 space-y-10 ${theme === 'light' ? 'bg-white border-zinc-200' : 'cartao-vidro border-white/10'}`}>
+            <h3 className={`text-2xl font-black font-display italic flex items-center gap-4 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}><UserIcon className="text-[#D4AF37]" /> Perfil Master</h3>
             <div className="flex flex-col sm:flex-row items-center gap-10">
                <div className="relative group w-40 h-40">
                   <img src={userData.avatar} className="w-full h-full rounded-[3rem] object-cover border-4 border-[#D4AF37]/30 shadow-2xl" alt="Avatar" />
@@ -100,8 +100,8 @@ const Settings: React.FC = () => {
             </div>
           </div>
 
-          <div className="cartao-vidro rounded-[3.5rem] p-10 md:p-14 border-white/10 space-y-10">
-            <h3 className="text-2xl font-black font-display italic flex items-center gap-4"><Store className="text-[#D4AF37]" /> Identidade Signature</h3>
+          <div className={`rounded-[3.5rem] p-10 md:p-14 border-2 ${theme === 'light' ? 'bg-white border-zinc-200' : 'cartao-vidro border-white/10'} space-y-10">
+            <h3 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'} flex items-center gap-4"><Store className="text-[#D4AF37]" /> Identidade Signature</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-3"><label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Nome da Casa</label><input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-white/5 border-2 border-white/10 p-6 rounded-3xl font-black"/></div>
               <div className="space-y-3"><label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Resumo Header (Slogan)</label><input type="text" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-white/5 border-2 border-white/10 p-6 rounded-3xl font-black"/></div>
@@ -120,8 +120,8 @@ const Settings: React.FC = () => {
             </div>
           </div>
 
-          <div className="cartao-vidro rounded-[3.5rem] p-10 md:p-14 border-white/10 space-y-10">
-            <h3 className="text-2xl font-black font-display italic flex items-center gap-4"><MapPin className="text-[#D4AF37]" /> Onde & Como</h3>
+          <div className={`rounded-[3.5rem] p-10 md:p-14 border-2 ${theme === 'light' ? 'bg-white border-zinc-200' : 'cartao-vidro border-white/10'} space-y-10">
+            <h3 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'} flex items-center gap-4"><MapPin className="text-[#D4AF37]" /> Onde & Como</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-3"><label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">WhatsApp Business</label><input type="text" value={formData.whatsapp} onChange={e => setFormData({...formData, whatsapp: e.target.value})} className="w-full bg-white/5 border-2 border-white/10 p-6 rounded-3xl font-black"/></div>
               <div className="space-y-3"><label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Instagram (@user)</label><input type="text" value={formData.instagram} onChange={e => setFormData({...formData, instagram: e.target.value})} className="w-full bg-white/5 border-2 border-white/10 p-6 rounded-3xl font-black"/></div>
@@ -143,17 +143,17 @@ const Settings: React.FC = () => {
             </div>
           </div>
 
-          <div className="cartao-vidro rounded-[3.5rem] p-10 md:p-14 border-white/10 space-y-10">
-            <h3 className="text-2xl font-black font-display italic flex items-center gap-4"><Clock className="text-[#D4AF37]" /> Horários de Funcionamento</h3>
+          <div className={`rounded-[3.5rem] p-10 md:p-14 border-2 ${theme === 'light' ? 'bg-white border-zinc-200' : 'cartao-vidro border-white/10'} space-y-10">
+            <h3 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'} flex items-center gap-4"><Clock className="text-[#D4AF37]" /> Horários de Funcionamento</h3>
             <div className="grid grid-cols-2 gap-8">
               <div className="space-y-3"><label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Abertura</label><input type="time" value={formData.openingTime} onChange={e => setFormData({...formData, openingTime: e.target.value})} className="w-full bg-white/5 border-2 border-white/10 p-6 rounded-3xl font-black text-center"/></div>
               <div className="space-y-3"><label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Fechamento</label><input type="time" value={formData.closingTime} onChange={e => setFormData({...formData, closingTime: e.target.value})} className="w-full bg-white/5 border-2 border-white/10 p-6 rounded-3xl font-black text-center"/></div>
             </div>
           </div>
 
-          <div className="cartao-vidro rounded-[3.5rem] p-10 md:p-14 border-white/10 space-y-10">
+          <div className={`rounded-[3.5rem] p-10 md:p-14 border-2 ${theme === 'light' ? 'bg-white border-zinc-200' : 'cartao-vidro border-white/10'} space-y-10">
             <div className="flex items-center justify-between">
-               <h3 className="text-2xl font-black font-display italic flex items-center gap-4"><ImageIcon className="text-[#D4AF37]" /> Nosso Ambiente (Slides)</h3>
+               <h3 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'} flex items-center gap-4"><ImageIcon className="text-[#D4AF37]" /> Nosso Ambiente (Slides)</h3>
                <label className="gradiente-ouro text-black px-6 py-3 rounded-2xl font-black text-[10px] uppercase cursor-pointer flex items-center gap-2 shadow-lg"><Plus size={16}/> {loading ? '...' : 'ADICIONAR FOTO'} <input type="file" accept="image/*" className="hidden" onChange={handleGalleryUpload}/></label>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
@@ -165,36 +165,39 @@ const Settings: React.FC = () => {
                ))}
             </div>
           </div>
-
-          <div className="cartao-vidro rounded-[3.5rem] p-5 md:p-7 border-white/5 space-y-3">
-            <h3 className="text-2xl font-black font-display italic flex items-center gap-4"><UserIcon className="text-[#D4AF37]" /> Gestão de Barbeiros</h3>
-            <p className="text-sm text-zinc-400">Reinicie os contadores de curtidas de todos os profissionais.</p>
-            <button 
-              type="button"
-              onClick={async () => {
-                if (confirm('Tem certeza que deseja reiniciar todos os contadores de curtidas dos barbeiros?')) {
-                  await resetAllLikes();
-                  alert('Contadores de curtidas reiniciados com sucesso!');
-                }
-              }}
-              className="w-full bg-red-100/10 border-2 border-red-500/40 text-red-100 px-4 py-2 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-100/10 transition-all"
-            >
-              Reiniciar Contadores de Curtidas
-            </button>
+          
+          <div className={`rounded-[3.5rem] p-10 md:p-14 border-2 space-y-6 ${theme === 'light' ? 'bg-white border-zinc-200' : 'cartao-vidro border-white/10'}`}>
+            <div className="flex items-center justify-between">
+              <h3 className={`text-2xl font-black font-display italic flex items-center gap-4 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}><UserIcon className="text-[#D4AF37]" /> Gestão de Barbeiros</h3>
+              <button 
+                type="button"
+                onClick={async () => {
+                  if (confirm('Tem certeza que deseja reiniciar todos os contadores de curtidas dos barbeiros?')) {
+                    await resetAllLikes();
+                    alert('Contadores de curtidas reiniciados com sucesso!');
+                  }
+                }}
+                className="p-3 bg-red-500/20 border-2 border-red-500/40 text-red-400 rounded-xl hover:bg-red-500/30 transition-all"
+                title="Reiniciar contadores de curtidas"
+              >
+                <RotateCcw size={20} />
+              </button>
+            </div>
+            <p className={`text-sm ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-400'}`}>Reinicie os contadores de curtidas de todos os profissionais.</p>
           </div>
         </div>
 
         <aside className="space-y-10">
-          <div className="cartao-vidro rounded-[3.5rem] p-12 border-white/10 text-center flex flex-col items-center">
-            <h3 className="text-2xl font-black font-display italic mb-10">Logo Master</h3>
+          <div className={`rounded-[3.5rem] p-12 border-2 text-center flex flex-col items-center ${theme === 'light' ? 'bg-white border-zinc-200' : 'cartao-vidro border-white/10'}`}>
+            <h3 className={`text-2xl font-black font-display italic mb-10 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Logo Master</h3>
             <div className="relative group w-52 h-52 mb-6">
               <img src={formData.logo} className="w-full h-full rounded-[3.5rem] object-cover border-4 border-[#D4AF37]/40 shadow-2xl transition-all" alt="Logo" />
               <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center rounded-[3.5rem] cursor-pointer"><Upload className="text-white" size={32} /><input type="file" accept="image/*" className="hidden" onChange={e => handleImageChange('logo', e)} /></label>
             </div>
           </div>
 
-          <div className="cartao-vidro rounded-[3.5rem] p-12 border-white/10 space-y-10">
-             <h3 className="text-xs font-black text-white uppercase tracking-[0.3em] flex items-center gap-4"><ImageIcon size={20} className="text-[#D4AF37]"/> Visuais Master</h3>
+          <div className={`rounded-[3.5rem] p-12 border-2 space-y-10 ${theme === 'light' ? 'bg-white border-zinc-200' : 'cartao-vidro border-white/10'}`}>
+             <h3 className={`text-xs font-black uppercase tracking-[0.3em] flex items-center gap-4 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}><ImageIcon size={20} className="text-[#D4AF37]"/> Visuais Master</h3>
              <div className="space-y-6">
                 <div className="space-y-3">
                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Capa da Home</p>
