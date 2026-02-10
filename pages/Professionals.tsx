@@ -68,7 +68,7 @@ const Professionals: React.FC = () => {
 
             <div className="mt-8">
               <h3 className="text-2xl font-black text-white font-display italic">{p.name}</h3>
-              <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-black mt-2">Mestre Barbeiro Signature</p>
+              <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-black mt-2">Mestre Barbeiro. Signature</p>
             </div>
 
             <div className="mt-10 flex gap-4">
