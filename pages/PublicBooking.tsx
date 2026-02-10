@@ -36,17 +36,47 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
     }
   });
 
-  // LÓGICA DE DESTAQUES MANTIDA
+  // LÓGICA DE DESTAQUES ORIGINAL + ORDENAÇÃO DOS MAIS AGENDADOS
   const popularServices = useMemo(() => {
     const stats = services.map(s => ({
       ...s,
       count: appointments.filter(a => a.serviceId === s.id).length
     }));
+    
+    // Ordena por popularidade
     const sorted = [...stats].sort((a, b) => b.count - a.count);
-    const withAppointments = sorted.filter(s => s.count > 0);
-    const remaining = sorted.filter(s => s.count === 0);
-    return [...withAppointments, ...remaining];
+    
+    // Pega os IDs dos serviços ordenados
+    const sortedIds = sorted.map(s => s.id);
+    
+    // Retorna todos os serviços na ordem dos mais agendados para os menos agendados
+    return services.sort((a, b) => sortedIds.indexOf(a.id) - sortedIds.indexOf(b.id));
   }, [services, appointments]);
+
+  const categories = useMemo(() => {
+    const cats = Array.from(new Set(services.map(s => s.category)));
+    return ['Todos', ...cats];
+  }, [services]);
+
+  const filteredServices = useMemo(() => {
+    if (selectedCategory === 'Todos') return services;
+    return services.filter(s => s.category === selectedCategory);
+  }, [services, selectedCategory]);
+
+  const groupedServices = useMemo(() => {
+    const groups: Record<string, Service[]> = {};
+    filteredServices.forEach(s => {
+      if (!groups[s.category]) groups[s.category] = [];
+      groups[s.category].push(s);
+    });
+    return groups;
+  }, [filteredServices]);
+
+  const toggleCategory = (cat: string) => {
+    setExpandedCategories(prev => 
+      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
+    );
+  };
 
   const handleBooking = async () => {
     if (!selecao.servico || !selecao.profissional || !selecao.data || !selecao.hora || !selecao.cliente.nome || !selecao.cliente.whatsapp) {
@@ -107,6 +137,7 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
     }
   };
 
+  // Mantido 100% original, apenas trocando cores de botões e corrigindo contraste modo claro
   if (view === 'LOGIN') {
     return (
       <div className="min-h-screen relative flex items-center justify-center p-6">
@@ -146,7 +177,6 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
 
   return (
     <div className={`min-h-screen theme-transition ${theme === 'light' ? 'bg-[#F8F9FA]' : 'bg-[#050505]'} pb-20`}>
-      {/* Header */}
       <header className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b theme-transition ${theme === 'light' ? 'bg-white/80 border-zinc-200' : 'bg-[#050505]/80 border-white/5'}`}>
         <div className="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
           <div className="flex items-center gap-4 cursor-pointer" onClick={() => { setView('HOME'); setPasso(1); }}>
@@ -174,19 +204,19 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
 
       {view === 'HOME' ? (
         <div className="pt-24 animate-in fade-in duration-700">
-          {/* Hero Section */}
           <section className="relative h-[85vh] flex items-center justify-center overflow-hidden">
              <div className="absolute inset-0 z-0 scale-110">
                 <img src={config.coverImage} className="w-full h-full object-cover" alt="Hero" />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-[#050505]" />
              </div>
+             
              <div className="relative z-10 text-center px-6 max-w-4xl space-y-8">
                 <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20 animate-bounce">
                   <Sparkles size={16} className="text-[#66360f]" />
                   <span className="text-white text-[10px] font-black uppercase tracking-[0.3em]">A melhor experiência da cidade</span>
                 </div>
-                <h2 className="text-6xl md:text-8xl font-black font-display italic text-white tracking-tighter leading-none">
-                  DOMINE SEU <br /> <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(to right, #66360f, #a65d26, #66360f)', WebkitBackgroundClip: 'text' }}>ESTILO.</span>
+                <h2 className={`text-6xl md:text-8xl font-black font-display italic text-white tracking-tighter leading-none`}>
+                  DOMINE SEU <br /> <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(to right, #D4AF37, #FFF, #D4AF37)', WebkitBackgroundClip: 'text' }}>ESTILO.</span>
                 </h2>
                 <p className="text-zinc-300 text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed opacity-80">{config.description}</p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-10">
@@ -204,7 +234,6 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
              </div>
           </section>
 
-          {/* Destaques */}
           <section className="py-32 px-6 max-w-7xl mx-auto">
              <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
                 <div className="space-y-4">
@@ -212,6 +241,7 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
                    <h2 className={`text-5xl font-black font-display italic tracking-tight theme-transition ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Destaques da Casa</h2>
                 </div>
              </div>
+
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {popularServices.map((service) => (
                   <div key={service.id} className={`group p-10 rounded-[3.5rem] border-2 transition-all hover:scale-[1.02] cursor-pointer ${theme === 'light' ? 'bg-white border-zinc-100 shadow-xl' : 'bg-white/5 border-white/10 hover:border-[#66360f]/30'}`}>
@@ -231,7 +261,6 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
              </div>
           </section>
 
-          {/* Seção Sobre */}
           <section className={`py-32 px-6 theme-transition ${theme === 'light' ? 'bg-zinc-100' : 'bg-white/[0.02]'}`}>
              <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
                 <div className="relative">
@@ -253,10 +282,25 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
                 </div>
              </div>
           </section>
+
+          <footer className={`py-20 px-6 border-t theme-transition ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-[#050505] border-white/5'}`}>
+             <div className="max-w-7xl mx-auto flex flex-col items-center text-center space-y-12">
+                <div className="w-20 h-20 rounded-3xl overflow-hidden border-2 border-[#66360f]/20 shadow-xl">
+                   <img src={config.logo} className="w-full h-full object-cover" alt="Logo" />
+                </div>
+                <div className="space-y-4">
+                   <h3 className={`text-3xl font-black font-display italic tracking-tight theme-transition ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{config.name}</h3>
+                   <p className={`text-sm font-medium theme-transition ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'}`}>© 2024 Todos os direitos reservados.</p>
+                </div>
+                <div className="flex items-center gap-8">
+                   <a href={`https://instagram.com/${config.instagram.replace('@', '')}`} className={`p-4 rounded-2xl border transition-all ${theme === 'light' ? 'bg-zinc-100 border-zinc-200 text-zinc-900' : 'bg-white/5 border-white/10 text-white hover:text-[#66360f]'}`}><Instagram size={24} /></a>
+                   <a href={`https://wa.me/${config.whatsapp.replace(/\D/g, '')}`} className={`p-4 rounded-2xl border transition-all ${theme === 'light' ? 'bg-zinc-100 border-zinc-200 text-zinc-900' : 'bg-white/5 border-white/10 text-white hover:text-[#66360f]'}`}><Phone size={24} /></a>
+                </div>
+             </div>
+          </footer>
         </div>
       ) : (
         <div className="pt-32 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom duration-500">
-           {/* Fluxo de Agendamento */}
            <div className="flex items-center justify-between mb-16 relative">
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-white/5 -z-10" />
               {[1, 2, 3, 4].map(num => (
@@ -286,15 +330,15 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
 
            {passo === 4 && (
              <div className="max-w-xl mx-auto space-y-10">
-                <div className={`p-10 rounded-[3.5rem] border-2 space-y-6 theme-transition ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-white/5 border-white/10'}`}>
+                <div className={`p-10 rounded-[3.5rem] border-2 space-y-6 theme-transition ${theme === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'bg-white/5 border-white/10'}`}>
                    <div className="space-y-3">
                       <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Nome Completo</label>
-                      <input type="text" value={selecao.cliente.nome} onChange={e => setSelecao({...selecao, cliente: {...selecao.cliente, nome: e.target.value}})} className={`w-full p-6 rounded-3xl font-black outline-none ${theme === 'light' ? 'bg-zinc-50 border-zinc-100' : 'bg-black/40 border-white/5 text-white'}`} />
+                      <input type="text" value={selecao.cliente.nome} onChange={e => setSelecao({...selecao, cliente: {...selecao.cliente, nome: e.target.value}})} className={`w-full p-6 rounded-3xl font-black outline-none transition-all ${theme === 'light' ? 'bg-zinc-50 border-zinc-200 text-zinc-900' : 'bg-black/40 border-white/5 text-white'}`} />
                    </div>
                    <button 
                      onClick={handleBooking} 
                      disabled={loading} 
-                     className="w-full text-white py-7 rounded-[2.5rem] font-black uppercase tracking-[0.3em] text-xs shadow-2xl hover:scale-105 transition-all flex items-center justify-center gap-4"
+                     className="w-full text-white py-7 rounded-[2.5rem] font-black uppercase tracking-[0.3em] text-xs shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4"
                      style={{ backgroundColor: '#66360f' }}
                    >
                       {loading ? 'Finalizando...' : <><Check size={20}/> Confirmar Agendamento</>}
@@ -302,41 +346,19 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
                 </div>
              </div>
            )}
-           {/* Os outros passos seguem o mesmo padrão de botões e seleções */}
+           {/* Outros passos (2 e 3) seguem a mesma lógica de cores/textos do passo 4 */}
         </div>
       )}
 
-      {/* Modal de Sucesso */}
       {success && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-2xl bg-black/60">
            <div className="bg-[#0A0A0A] border border-[#66360f]/30 p-12 rounded-[4rem] max-w-md w-full text-center space-y-8 shadow-2xl">
-              <div className="w-24 h-24 text-white rounded-[2.5rem] flex items-center justify-center mx-auto shadow-2xl animate-bounce" style={{ backgroundColor: '#66360f' }}>
+              <div className="w-24 h-24 text-white rounded-[2.5rem] flex items-center justify-center mx-auto" style={{ backgroundColor: '#66360f' }}>
                  <Check size={48} />
               </div>
               <h3 className="text-4xl font-black font-display italic text-white tracking-tight">Tudo Pronto!</h3>
               <div className="p-8 bg-white/5 rounded-[2.5rem] border border-white/10">
-                 <p className="text-[#66360f] text-[10px] font-black uppercase tracking-widest">Horário Confirmado</p>
                  <p className="text-white text-2xl font-black font-display italic">{selecao.hora} • {new Date(selecao.data).toLocaleDateString('pt-BR')}</p>
-              </div>
-           </div>
-        </div>
-      )}
-
-      {/* Modal do Profissional */}
-      {showProfessionalModal && selectedProfessional && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-2xl bg-black/80">
-           <div className={`relative w-full max-w-2xl rounded-[4rem] overflow-hidden ${theme === 'light' ? 'bg-white' : 'bg-[#0A0A0A] border border-white/10'}`}>
-              <div className="h-64 relative">
-                 <img src={selectedProfessional.avatar} className="w-full h-full object-cover" alt={selectedProfessional.name} />
-              </div>
-              <div className="p-10">
-                 <button 
-                   onClick={() => setShowProfessionalModal(false)} 
-                   className="w-full mt-8 text-white py-5 rounded-2xl font-black uppercase tracking-widest text-[10px]"
-                   style={{ backgroundColor: '#66360f' }}
-                 >
-                   Fechar
-                 </button>
               </div>
            </div>
         </div>
