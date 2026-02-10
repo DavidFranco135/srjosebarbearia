@@ -177,7 +177,7 @@ const Settings: React.FC = () => {
                   alert('Contadores de curtidas reiniciados com sucesso!');
                 }
               }}
-              className="w-full bg-red-500/20 border-2 border-red-500/40 text-red-400 px-8 py-5 rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-red-500/30 transition-all"
+              className="w-full bg-red-100/10 border-2 border-red-500/40 text-red-400 px-4 py-2 rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-red-500/30 transition-all"
             >
               Reiniciar Contadores de Curtidas
             </button>
