@@ -474,7 +474,15 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
                     return (
                       <div key={prof.id} className={`rounded-2xl p-4 text-center space-y-3 transition-all ${theme === 'light' ? 'bg-zinc-50 border border-zinc-200' : 'bg-white/5 border border-white/10'}`}>
                          <div className="relative mx-auto w-20 h-20">
-                            <img src={prof.avatar} className="w-full h-full rounded-xl object-cover border-2 border-[#B8860B]" alt="" />
+                            <img 
+                              src={prof.avatar} 
+                              className="w-full h-full rounded-xl object-cover border-2 border-[#B8860B] cursor-pointer" 
+                              alt="" 
+                              onClick={() => { setSelectedProfessional(prof); setShowProfessionalModal(true); }}
+                            />
+                            <div className="absolute -bottom-2 -right-2 bg-[#D4AF37] text-black text-[8px] font-black px-2 py-1 rounded-lg flex items-center gap-1">
+                               <Heart size={8} fill="currentColor"/> {prof.likes || 0}
+                            </div>
                          </div>
                          <div>
                             <p className={`font-bold text-sm ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{prof.name}</p>
