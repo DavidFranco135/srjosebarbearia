@@ -100,8 +100,8 @@ const Settings: React.FC = () => {
             </div>
           </div>
 
-          <div className={`rounded-[3.5rem] p-10 md:p-14 border-2 ${theme === 'light' ? 'bg-white border-zinc-200' : 'cartao-vidro border-white/10'} space-y-10">
-            <h3 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'} flex items-center gap-4"><Store className="text-[#D4AF37]" /> Identidade Signature</h3>
+          <div className={`rounded-[3.5rem] p-10 md:p-14 border-2 ${theme === 'light' ? 'bg-white border-zinc-200' : 'cartao-vidro border-white/10'} space-y-10`}>
+            <h3 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'} flex items-center gap-4`}><Store className="text-[#D4AF37]" /> Identidade Signature</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-3"><label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Nome da Casa</label><input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-white/5 border-2 border-white/10 p-6 rounded-3xl font-black"/></div>
               <div className="space-y-3"><label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Resumo Header (Slogan)</label><input type="text" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-white/5 border-2 border-white/10 p-6 rounded-3xl font-black"/></div>
@@ -120,8 +120,8 @@ const Settings: React.FC = () => {
             </div>
           </div>
 
-          <div className={`rounded-[3.5rem] p-10 md:p-14 border-2 ${theme === 'light' ? 'bg-white border-zinc-200' : 'cartao-vidro border-white/10'} space-y-10">
-            <h3 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'} flex items-center gap-4"><MapPin className="text-[#D4AF37]" /> Onde & Como</h3>
+          <div className={`rounded-[3.5rem] p-10 md:p-14 border-2 ${theme === 'light' ? 'bg-white border-zinc-200' : 'cartao-vidro border-white/10'} space-y-10`}>
+            <h3 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'} flex items-center gap-4`}><MapPin className="text-[#D4AF37]" /> Onde & Como</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-3"><label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">WhatsApp Business</label><input type="text" value={formData.whatsapp} onChange={e => setFormData({...formData, whatsapp: e.target.value})} className="w-full bg-white/5 border-2 border-white/10 p-6 rounded-3xl font-black"/></div>
               <div className="space-y-3"><label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Instagram (@user)</label><input type="text" value={formData.instagram} onChange={e => setFormData({...formData, instagram: e.target.value})} className="w-full bg-white/5 border-2 border-white/10 p-6 rounded-3xl font-black"/></div>
@@ -143,17 +143,17 @@ const Settings: React.FC = () => {
             </div>
           </div>
 
-          <div className={`rounded-[3.5rem] p-10 md:p-14 border-2 ${theme === 'light' ? 'bg-white border-zinc-200' : 'cartao-vidro border-white/10'} space-y-10">
-            <h3 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'} flex items-center gap-4"><Clock className="text-[#D4AF37]" /> Horários de Funcionamento</h3>
+          <div className={`rounded-[3.5rem] p-10 md:p-14 border-2 ${theme === 'light' ? 'bg-white border-zinc-200' : 'cartao-vidro border-white/10'} space-y-10`}>
+            <h3 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'} flex items-center gap-4`}><Clock className="text-[#D4AF37]" /> Horários de Funcionamento</h3>
             <div className="grid grid-cols-2 gap-8">
               <div className="space-y-3"><label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Abertura</label><input type="time" value={formData.openingTime} onChange={e => setFormData({...formData, openingTime: e.target.value})} className="w-full bg-white/5 border-2 border-white/10 p-6 rounded-3xl font-black text-center"/></div>
               <div className="space-y-3"><label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Fechamento</label><input type="time" value={formData.closingTime} onChange={e => setFormData({...formData, closingTime: e.target.value})} className="w-full bg-white/5 border-2 border-white/10 p-6 rounded-3xl font-black text-center"/></div>
             </div>
           </div>
 
-          <div className={`rounded-[3.5rem] p-10 md:p-14 border-2 ${theme === 'light' ? 'bg-white border-zinc-200' : 'cartao-vidro border-white/10'} space-y-10">
+          <div className={`rounded-[3.5rem] p-10 md:p-14 border-2 ${theme === 'light' ? 'bg-white border-zinc-200' : 'cartao-vidro border-white/10'} space-y-10`}>
             <div className="flex items-center justify-between">
-               <h3 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'} flex items-center gap-4"><ImageIcon className="text-[#D4AF37]" /> Nosso Ambiente (Slides)</h3>
+               <h3 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'} flex items-center gap-4`}><ImageIcon className="text-[#D4AF37]" /> Nosso Ambiente (Slides)</h3>
                <label className="gradiente-ouro text-black px-6 py-3 rounded-2xl font-black text-[10px] uppercase cursor-pointer flex items-center gap-2 shadow-lg"><Plus size={16}/> {loading ? '...' : 'ADICIONAR FOTO'} <input type="file" accept="image/*" className="hidden" onChange={handleGalleryUpload}/></label>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
