@@ -21,6 +21,7 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [newReview, setNewReview] = useState({ rating: 5, comment: '', userName: '', clientPhone: '' });
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  const [selecao, setSelecao] = useState({ serviceId: '', professionalId: '', date: '', time: '', clientName: '', clientPhone: '', clientEmail: '' });
   
   const [loginIdentifier, setLoginIdentifier] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -48,8 +49,36 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
     }
   }, [user, clients, initialView]);
 
-  const categories = useMemo(() => ['Todos', ...Array.from(new Set(services.map(s => s.category)))], [services]);
-  const filteredServices = useMemo(() => selectedCategory === 'Todos' ? services : services.filter(s => s.category === selectedCategory), [services, selectedCategory]);
+  // Estados para drag scroll
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const destaqueRef = React.useRef<HTMLDivElement>(null);
+  const experienciaRef = React.useRef<HTMLDivElement>(null);
+  const membroRef = React.useRef<HTMLDivElement>(null);
+
+  const handleMouseDown = (e: React.MouseEvent, ref: React.RefObject<HTMLDivElement>) => {
+    if (!ref.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - ref.current.offsetLeft);
+    setScrollLeft(ref.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent, ref: React.RefObject<HTMLDivElement>) => {
+    if (!isDragging || !ref.current) return;
+    e.preventDefault();
+    const x = e.pageX - ref.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    ref.current.scrollLeft = scrollLeft - walk;
+  };
 
   const handleBookingStart = (svc: Service) => {
     setSelecao(prev => ({ ...prev, serviceId: svc.id }));
@@ -75,7 +104,8 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
     };
   }, []);
 
-  const [selecao, setSelecao] = useState({ serviceId: '', professionalId: '', date: '', time: '', clientName: '', clientPhone: '', clientEmail: '' });
+  const categories = useMemo(() => ['Todos', ...Array.from(new Set(services.map(s => s.category)))], [services]);
+  const filteredServices = useMemo(() => selectedCategory === 'Todos' ? services : services.filter(s => s.category === selectedCategory), [services, selectedCategory]);
 
   const handleConfirmBooking = async () => {
     if (!selecao.date || !selecao.time || !selecao.professionalId || !selecao.clientName || !selecao.clientPhone || !selecao.clientEmail) {
@@ -214,7 +244,7 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
             <div className={`absolute inset-0 bg-gradient-to-t ${theme === 'light' ? 'from-[#F8F9FA] via-transparent to-transparent' : 'from-[#050505] via-transparent to-transparent'}`}></div>
             <div className="absolute top-6 right-6 z-[100]"><button onClick={() => setView('LOGIN')} className="bg-[#D4AF37] text-black px-6 py-3 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-2xl transition-all hover:scale-105 active:scale-95"><History size={16}/> PORTAL DO MEMBRO</button></div>
             <div className="relative z-20 text-center px-6 mt-10">
-               <div className="w-20 h-20 rounded-[2rem] gradiente-ouro p-1 mx-auto mb-6"><div className="w-full h-full rounded-[1.8rem] bg-black overflow-hidden"><img src={config.logo} className="w-full h-full object-cover" alt="Logo" /></div></div>
+               <div className="w-28 h-28 rounded-3xl gradiente-ouro p-1 mx-auto mb-6"><div className="w-full h-full rounded-[2.2rem] bg-black overflow-hidden"><img src={config.logo} className="w-full h-full object-cover" alt="Logo" /></div></div>
                <h1 className={`text-5xl md:text-7xl font-black font-display italic tracking-tight ${theme === 'light' ? 'text-white drop-shadow-lg' : 'text-white'}`}>{config.name}</h1>
                <p className="text-[#D4AF37] text-[10px] font-black uppercase tracking-[0.4em] mt-3">{config.description}</p>
             </div>
@@ -224,7 +254,14 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
              {/* 1. Destaques da Casa */}
              <section className="mb-20 pt-10">
                 <h2 className={`text-2xl font-black font-display italic mb-8 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Destaques da Casa <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
-                <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide snap-x">
+                <div 
+                  ref={destaqueRef}
+                  className="flex gap-4 overflow-x-auto pb-6 snap-x cursor-grab active:cursor-grabbing scrollbar-hide"
+                  onMouseDown={(e) => handleMouseDown(e, destaqueRef)}
+                  onMouseLeave={handleMouseLeave}
+                  onMouseUp={handleMouseUp}
+                  onMouseMove={(e) => handleMouseMove(e, destaqueRef)}
+                >
                    {services.slice(0, 6).map(svc => (
                      <div key={svc.id} className={`snap-center flex-shrink-0 w-64 md:w-72 rounded-[2.5rem] overflow-hidden group shadow-2xl transition-all ${theme === 'light' ? 'bg-white border border-zinc-200 hover:border-blue-300' : 'cartao-vidro border-white/5 hover:border-[#D4AF37]/30'}`}>
                         <div className="h-48 overflow-hidden"><img src={svc.image} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700" alt="" /></div>
@@ -294,7 +331,14 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
              {/* 3. A Experiência Signature (Galeria) */}
              <section className="mb-24">
                 <h2 className={`text-2xl font-black font-display italic mb-8 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>A Experiência Signature <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
-                <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide snap-x">
+                <div 
+                  ref={experienciaRef}
+                  className="flex gap-4 overflow-x-auto pb-6 snap-x cursor-grab active:cursor-grabbing scrollbar-hide"
+                  onMouseDown={(e) => handleMouseDown(e, experienciaRef)}
+                  onMouseLeave={handleMouseLeave}
+                  onMouseUp={handleMouseUp}
+                  onMouseMove={(e) => handleMouseMove(e, experienciaRef)}
+                >
                    {(Array.isArray(config.gallery) ? config.gallery : []).map((img, i) => (
                      <div key={i} className={`snap-center flex-shrink-0 w-80 md:w-[500px] h-64 md:h-80 rounded-[2.5rem] overflow-hidden shadow-2xl transition-all hover:scale-[1.02] ${theme === 'light' ? 'border-4 border-zinc-200' : 'border-4 border-white/5'}`}>
                         <img src={img} className="w-full h-full object-cover" alt="" />
@@ -305,24 +349,31 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
              </section>
 
              {/* 4. Voz dos Membros (Avaliações) */}
-             <section className="mb-24 py-10">
-                <h2 className={`text-2xl font-black font-display italic mb-10 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Voz dos Membros <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
-                <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide snap-x">
-                   {config.reviews?.length === 0 && <p className={`italic py-10 text-center w-full ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'}`}>Aguardando seu feedback para brilhar aqui.</p>}
+             <section className="mb-24 py-10 -mx-6 px-6 bg-black">
+                <h2 className={`text-2xl font-black font-display italic mb-10 flex items-center gap-6 text-white`}>Voz dos Membros <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
+                <div 
+                  ref={membroRef}
+                  className="flex gap-6 overflow-x-auto pb-6 snap-x cursor-grab active:cursor-grabbing scrollbar-hide"
+                  onMouseDown={(e) => handleMouseDown(e, membroRef)}
+                  onMouseLeave={handleMouseLeave}
+                  onMouseUp={handleMouseUp}
+                  onMouseMove={(e) => handleMouseMove(e, membroRef)}
+                >
+                   {config.reviews?.length === 0 && <p className={`italic py-10 text-center w-full text-zinc-500`}>Aguardando seu feedback para brilhar aqui.</p>}
                    {config.reviews?.map((rev, i) => (
-                      <div key={i} className={`snap-center flex-shrink-0 w-80 p-8 rounded-[2rem] relative group ${theme === 'light' ? 'bg-white border border-zinc-200' : 'cartao-vidro border-white/5'}`}>
+                      <div key={i} className={`snap-center flex-shrink-0 w-80 p-8 rounded-[2rem] relative group cartao-vidro border-white/5`}>
                          <div className="absolute -top-4 -left-4 w-10 h-10 gradiente-ouro rounded-full flex items-center justify-center text-black shadow-lg"><Quote size={18} fill="currentColor"/></div>
                          <div className="flex gap-1 mb-4">
                             {[1,2,3,4,5].map(s => (
-                               <Star key={s} size={14} fill={s <= rev.rating ? '#D4AF37' : 'none'} className={s <= rev.rating ? 'text-[#D4AF37]' : theme === 'light' ? 'text-zinc-300' : 'text-zinc-800'}/>
+                               <Star key={s} size={14} fill={s <= rev.rating ? '#D4AF37' : 'none'} className={s <= rev.rating ? 'text-[#D4AF37]' : 'text-zinc-800'}/>
                             ))}
                          </div>
-                         <p className={`text-sm italic leading-relaxed mb-6 ${theme === 'light' ? 'text-zinc-700' : 'text-zinc-300'}`}>"{rev.comment}"</p>
+                         <p className={`text-sm italic leading-relaxed mb-6 text-zinc-300`}>"{rev.comment}"</p>
                          <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-[#D4AF37]/20 flex items-center justify-center">
                                <User size={18} className="text-[#D4AF37]"/>
                             </div>
-                            <p className={`text-[10px] font-black ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{rev.userName}</p>
+                            <p className={`text-[10px] font-black text-white`}>{rev.userName}</p>
                          </div>
                       </div>
                    ))}
@@ -335,16 +386,16 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                    {professionals.map(prof => (
                       <div key={prof.id} className={`rounded-[2rem] p-6 text-center space-y-4 group transition-all hover:scale-105 ${theme === 'light' ? 'bg-white border border-zinc-200 hover:border-blue-300' : 'cartao-vidro border-white/5 hover:border-[#D4AF37]/30'}`}>
-                         <div className="relative mx-auto w-24 h-24">
+                         <div className="relative mx-auto w-24 h-24 flex items-center justify-center">
                             <img 
                               src={prof.avatar} 
                               className="w-full h-full rounded-2xl object-cover border-2 border-[#D4AF37] cursor-pointer" 
                               alt="" 
                               onClick={() => { setSelectedProfessional(prof); setShowProfessionalModal(true); }}
                             />
-                            <button onClick={() => likeProfessional(prof.id)} className="absolute -bottom-2 -right-2 bg-[#D4AF37] text-black text-[8px] font-black px-2 py-1 rounded-lg flex items-center gap-1 shadow-lg hover:scale-110 transition-all">
-                               <Heart size={8} fill="currentColor"/> {prof.likes || 0}
-                            </button>
+                            <div className="absolute -right-10 top-1 text-red-500 text-xs font-black flex items-center gap-0.5 whitespace-nowrap">
+                               <Heart size={12} fill="currentColor" /> <span className="text-red-500">{prof.likes || 0}</span>
+                            </div>
                          </div>
                          <div>
                             <p className={`font-black text-sm ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{prof.name}</p>
@@ -359,7 +410,7 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
              <section className="mb-24">
                 <h2 className={`text-2xl font-black font-display italic mb-10 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Onde Nos Encontrar <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
                 <div className={`rounded-[2.5rem] overflow-hidden shadow-2xl ${theme === 'light' ? 'border border-zinc-200' : 'border border-white/5'}`}>
-                   <div className="aspect-video bg-zinc-900 flex items-center justify-center overflow-hidden">
+                   <div className="h-48 bg-zinc-900 flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-90 transition-all" onClick={() => config.locationUrl && window.open(config.locationUrl, '_blank')}>
                       {config.locationImage ? (
                         <img src={config.locationImage} className="w-full h-full object-cover" alt="Nossa localização" />
                       ) : (
@@ -469,51 +520,6 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
               </div>
            </div>
 
-           {/* Minhas Sugestões */}
-           <div className={`rounded-[2rem] p-8 mb-10 ${theme === 'light' ? 'bg-white border border-zinc-200' : 'cartao-vidro border-white/5'}`}>
-              <h3 className={`text-lg font-black font-display italic mb-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Minhas Sugestões</h3>
-              <div className="space-y-4">
-                 {suggestions.filter(s => s.clientPhone === loggedClient.phone).length === 0 && (
-                    <p className={`text-center py-10 italic ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'}`}>Você ainda não enviou nenhuma sugestão.</p>
-                 )}
-                 {suggestions.filter(s => s.clientPhone === loggedClient.phone).map(suggestion => (
-                    <div key={suggestion.id} className={`p-6 rounded-2xl border transition-all ${theme === 'light' ? 'bg-zinc-50 border-zinc-200' : 'bg-white/5 border-white/10'}`}>
-                       <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                             <MessageSquare className="text-[#D4AF37]" size={20} />
-                             <div>
-                                <p className={`text-sm font-black ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Sua Sugestão</p>
-                                <p className={`text-[10px] font-black uppercase tracking-widest ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'}`}>{suggestion.date}</p>
-                             </div>
-                          </div>
-                          <div className={`px-3 py-1 rounded-full text-[8px] font-black uppercase ${
-                             suggestion.response 
-                               ? 'bg-emerald-500/10 text-emerald-500' 
-                               : 'bg-yellow-500/10 text-yellow-500'
-                          }`}>
-                             {suggestion.response ? 'Respondida' : 'Aguardando'}
-                          </div>
-                       </div>
-                       <p className={`text-sm mb-4 ${theme === 'light' ? 'text-zinc-700' : 'text-zinc-300'}`}>{suggestion.text}</p>
-                       
-                       {suggestion.response && (
-                          <div className={`mt-4 pt-4 border-t ${theme === 'light' ? 'border-zinc-200' : 'border-white/10'}`}>
-                             <div className="flex items-start gap-3">
-                                <div className="w-8 h-8 rounded-full bg-[#D4AF37] flex items-center justify-center flex-shrink-0">
-                                   <User size={16} className="text-black" />
-                                </div>
-                                <div className="flex-1">
-                                   <p className={`text-xs font-black mb-2 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Resposta do Sr. José</p>
-                                   <p className={`text-sm ${theme === 'light' ? 'text-zinc-700' : 'text-zinc-400'}`}>{suggestion.response}</p>
-                                </div>
-                             </div>
-                          </div>
-                       )}
-                    </div>
-                 ))}
-              </div>
-           </div>
-
            {/* Curtir Barbeiros */}
            <div className={`rounded-[2rem] p-8 mb-10 ${theme === 'light' ? 'bg-white border border-zinc-200' : 'cartao-vidro border-white/5'}`}>
               <h3 className={`text-lg font-black font-display italic mb-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Nossos Barbeiros</h3>
@@ -522,15 +528,15 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
                     const isLiked = loggedClient.likedProfessionals?.includes(prof.id);
                     return (
                       <div key={prof.id} className={`rounded-2xl p-4 text-center space-y-3 transition-all ${theme === 'light' ? 'bg-zinc-50 border border-zinc-200' : 'bg-white/5 border border-white/10'}`}>
-                         <div className="relative mx-auto w-20 h-20">
+                         <div className="relative mx-auto w-20 h-20 flex items-center justify-center">
                             <img 
                               src={prof.avatar} 
                               className="w-full h-full rounded-xl object-cover border-2 border-[#B8860B] cursor-pointer" 
                               alt="" 
                               onClick={() => { setSelectedProfessional(prof); setShowProfessionalModal(true); }}
                             />
-                            <div className="absolute -bottom-2 -right-2 bg-[#D4AF37] text-black text-[8px] font-black px-2 py-1 rounded-lg flex items-center gap-1">
-                               <Heart size={8} fill="currentColor"/> {prof.likes || 0}
+                            <div className="absolute -right-8 top-0.5 text-red-500 text-[8px] font-black flex items-center gap-0.5 whitespace-nowrap">
+                               <Heart size={8} fill="currentColor"/> <span className="text-red-500">{prof.likes || 0}</span>
                             </div>
                          </div>
                          <div>
