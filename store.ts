@@ -42,6 +42,7 @@ interface BarberContextType {
   updateProfessional: (id: string, data: Partial<Professional>) => Promise<void>;
   deleteProfessional: (id: string) => Promise<void>;
   likeProfessional: (id: string) => void;
+  resetAllLikes: () => Promise<void>;
   addAppointment: (data: Omit<Appointment, 'id' | 'status'>, isPublic?: boolean) => Promise<void>;
   updateAppointmentStatus: (id: string, status: Appointment['status']) => Promise<void>;
   rescheduleAppointment: (id: string, date: string, startTime: string, endTime: string) => Promise<void>;
@@ -217,6 +218,13 @@ export function BarberProvider({ children }: { children?: ReactNode }) {
     }
   };
 
+  const resetAllLikes = async () => {
+    const updates = professionals.map(prof => 
+      updateDoc(doc(db, COLLECTIONS.PROFESSIONALS, prof.id), { likes: 0 })
+    );
+    await Promise.all(updates);
+  };
+
   const addAppointment = async (data: any, isPublic = false) => {
     await addDoc(collection(db, COLLECTIONS.APPOINTMENTS), { ...data, status: 'PENDENTE' });
     if (isPublic) {
@@ -299,7 +307,7 @@ export function BarberProvider({ children }: { children?: ReactNode }) {
       user, clients, professionals, services, appointments, financialEntries, notifications, suggestions, config, loading, theme,
       toggleTheme, login, logout, updateUser, addClient, updateClient, deleteClient,
       addService, updateService, deleteService,
-      addProfessional, updateProfessional, deleteProfessional, likeProfessional,
+      addProfessional, updateProfessional, deleteProfessional, likeProfessional, resetAllLikes,
       addAppointment, updateAppointmentStatus, rescheduleAppointment, deleteAppointment,
       addFinancialEntry, deleteFinancialEntry, addSuggestion, updateSuggestion, deleteSuggestion,
       markNotificationAsRead, clearNotifications, updateConfig, addShopReview
