@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { 
   ChevronLeft, ChevronRight, Plus, Clock, Check, X, 
-  Calendar, Scissors, LayoutGrid, List, UserPlus, DollarSign, RefreshCw
+  Calendar, Scissors, LayoutGrid, List, UserPlus, DollarSign, RefreshCw, Filter
 } from 'lucide-react';
 import { useBarberStore } from '../store';
 import { Appointment, Client } from '../types';
@@ -21,9 +21,24 @@ const Appointments: React.FC = () => {
   const [showQuickClient, setShowQuickClient] = useState(false);
   const [newApp, setNewApp] = useState({ clientId: '', serviceId: '', professionalId: '', startTime: '09:00' });
   const [quickClient, setQuickClient] = useState({ name: '', phone: '' });
+  const [filterMode, setFilterMode] = useState<'day' | 'month' | 'all'>('day');
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().split('T')[0].substring(0, 7));
 
   const hours = useMemo(() => Array.from({ length: 14 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), []);
+  
   const appointmentsToday = useMemo(() => appointments.filter(a => a.date === currentDate), [appointments, currentDate]);
+  
+  const appointmentsCurrentMonth = useMemo(() => {
+    return appointments.filter(a => a.date.startsWith(selectedMonth));
+  }, [appointments, selectedMonth]);
+
+  const appointmentsAll = useMemo(() => appointments, [appointments]);
+
+  const displayedAppointments = useMemo(() => {
+    if (filterMode === 'day') return appointmentsToday;
+    if (filterMode === 'month') return appointmentsCurrentMonth;
+    return appointmentsAll;
+  }, [filterMode, appointmentsToday, appointmentsCurrentMonth, appointmentsAll]);
 
   const handleQuickClient = async () => {
     if(!quickClient.name || !quickClient.phone) return alert("Preencha nome e telefone");
@@ -81,12 +96,59 @@ const Appointments: React.FC = () => {
              )}
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center bg-white/5 border border-white/10 rounded-xl p-1">
-            <button onClick={() => { const d = new Date(currentDate); d.setDate(d.getDate() - 1); setCurrentDate(d.toISOString().split('T')[0]); }} className="p-2 text-zinc-400 hover:text-white"><ChevronLeft size={20} /></button>
-            <span className="px-4 text-[10px] font-black uppercase tracking-widest">{new Date(currentDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</span>
-            <button onClick={() => { const d = new Date(currentDate); d.setDate(d.getDate() + 1); setCurrentDate(d.toISOString().split('T')[0]); }} className="p-2 text-zinc-400 hover:text-white"><ChevronRight size={20} /></button>
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl p-2">
+            <Filter size={16} className="text-zinc-500" />
+            <select 
+              value={filterMode} 
+              onChange={e => setFilterMode(e.target.value as 'day' | 'month' | 'all')}
+              className="bg-transparent text-white text-[10px] font-black uppercase outline-none"
+            >
+              <option value="day">Hoje</option>
+              <option value="month">Este Mês</option>
+              <option value="all">Ver Todos</option>
+            </select>
           </div>
+
+          {filterMode === 'day' && (
+            <div className="flex items-center bg-white/5 border border-white/10 rounded-xl p-1">
+              <button onClick={() => { const d = new Date(currentDate); d.setDate(d.getDate() - 1); setCurrentDate(d.toISOString().split('T')[0]); }} className="p-2 text-zinc-400 hover:text-white"><ChevronLeft size={20} /></button>
+              <span className="px-4 text-[10px] font-black uppercase tracking-widest">{new Date(currentDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</span>
+              <button onClick={() => { const d = new Date(currentDate); d.setDate(d.getDate() + 1); setCurrentDate(d.toISOString().split('T')[0]); }} className="p-2 text-zinc-400 hover:text-white"><ChevronRight size={20} /></button>
+            </div>
+          )}
+
+          {filterMode === 'month' && (
+            <div className="flex items-center bg-white/5 border border-white/10 rounded-xl p-1">
+              <button 
+                onClick={() => {
+                  const date = new Date(selectedMonth + '-01');
+                  date.setMonth(date.getMonth() - 1);
+                  setSelectedMonth(date.toISOString().split('T')[0].substring(0, 7));
+                }}
+                className="p-2 text-zinc-400 hover:text-white"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <input 
+                type="month" 
+                value={selectedMonth} 
+                onChange={e => setSelectedMonth(e.target.value)}
+                className="bg-transparent text-white text-[10px] font-black uppercase outline-none px-2"
+              />
+              <button 
+                onClick={() => {
+                  const date = new Date(selectedMonth + '-01');
+                  date.setMonth(date.getMonth() + 1);
+                  setSelectedMonth(date.toISOString().split('T')[0].substring(0, 7));
+                }}
+                className="p-2 text-zinc-400 hover:text-white"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          )}
+          
           <button onClick={() => setShowAddModal(true)} className="gradiente-ouro text-black px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg">Agendar +</button>
         </div>
       </div>
@@ -100,41 +162,46 @@ const Appointments: React.FC = () => {
                 {professionals.map(prof => (
                   <div key={prof.id} className={`flex items-center justify-center gap-3 border-r border-white/5 ${compactView ? 'p-2 flex-col' : 'p-4'}`}>
                     <img src={prof.avatar} className={`rounded-lg object-cover border border-[#D4AF37] ${compactView ? 'w-6 h-6' : 'w-8 h-8'}`} alt="" />
-                    <span className={`font-black uppercase tracking-widest ${compactView ? 'text-[8px]' : 'text-[10px]'}`}>{prof.name.split(' ')[0]}</span>
+                    <span className={`font-black text-white ${compactView ? 'text-[8px]' : 'text-[9px]'}`}>{compactView ? prof.name.split(' ')[0] : prof.name}</span>
                   </div>
                 ))}
               </div>
-              {hours.map(hour => (
-                <div key={hour} className={`border-b border-white/[0.03] ${compactView ? 'grid grid-cols-[60px_repeat(auto-fit,minmax(120px,1fr))] min-h-[50px]' : 'grid grid-cols-[80px_repeat(auto-fit,minmax(200px,1fr))] min-h-[100px]'}`}>
-                  <div className="flex items-center justify-center border-r border-white/5 bg-white/[0.01]"><span className={`font-black text-zinc-600 ${compactView ? 'text-[9px]' : 'text-[10px]'}`}>{hour}</span></div>
-                  {professionals.map(prof => {
-                    const app = appointmentsToday.find(a => a.professionalId === prof.id && a.startTime.split(':')[0] === hour.split(':')[0] && a.status !== 'CANCELADO');
-                    return (
-                      <div key={prof.id} className={`border-r border-white/5 last:border-r-0 ${compactView ? 'p-1' : 'p-2'}`}>
-                        {app && (
-                          <div className={`h-full w-full rounded-2xl border flex flex-col justify-between transition-all group ${app.status === 'CONCLUIDO_PAGO' ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-[#D4AF37]/30 bg-[#D4AF37]/5'} ${compactView ? 'p-1.5 rounded-lg' : 'p-3'}`}>
-                            <div className="truncate">
-                              <h4 className={`font-black uppercase truncate ${compactView ? 'text-[8px]' : 'text-[11px]'} ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{app.clientName}</h4>
-                              {!compactView && <p className="text-[9px] font-black opacity-50 uppercase mt-1 truncate">{app.serviceName}</p>}
+              
+              <div>
+                {hours.map(hour => (
+                  <div key={hour} className={`border-b border-white/5 grid ${compactView ? 'grid-cols-[60px_repeat(auto-fit,minmax(120px,1fr))]' : 'grid-cols-[80px_repeat(auto-fit,minmax(200px,1fr))]'}`}>
+                    <div className={`flex items-center justify-center text-zinc-600 border-r border-white/5 font-black text-[9px] ${compactView ? 'p-2' : 'p-4'}`}>{hour}</div>
+                    {professionals.map(prof => {
+                      const appsForProf = filterMode === 'day' ? 
+                        appointments.filter(a => a.date === currentDate && a.professionalId === prof.id) :
+                        filterMode === 'month' ?
+                        appointments.filter(a => a.date.startsWith(selectedMonth) && a.professionalId === prof.id) :
+                        appointments.filter(a => a.professionalId === prof.id);
+                      
+                      return (
+                        <div key={prof.id} className="border-r border-white/5 relative">
+                          {appsForProf.filter(a => a.startTime === hour).map(app => (
+                            <div key={app.id} className={`absolute inset-x-0 top-0 m-1 p-2 rounded-lg text-[7px] font-black cursor-pointer group transition-all ${app.status === 'CONCLUIDO_PAGO' ? 'bg-emerald-500/20 border border-emerald-500 text-emerald-500' : 'bg-[#D4AF37]/20 border border-[#D4AF37] text-[#D4AF37]'}`}>
+                              <div className="truncate">{app.clientName}</div>
+                              <div className={`flex items-center justify-end gap-1 ${compactView ? 'mt-0.5' : 'mt-2'}`}>
+                                <button onClick={() => updateAppointmentStatus(app.id, 'CONCLUIDO_PAGO')} className={`rounded-lg transition-all ${app.status === 'CONCLUIDO_PAGO' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-zinc-500 hover:text-white'} ${compactView ? 'p-0.5' : 'p-1.5'}`} title="Marcar como Pago"><DollarSign size={compactView ? 9 : 12}/></button>
+                                <button onClick={() => setShowRescheduleModal(app)} className={`bg-white/10 text-zinc-500 hover:text-white rounded-lg transition-all ${compactView ? 'p-0.5' : 'p-1.5'}`} title="Reagendar"><RefreshCw size={compactView ? 9 : 12}/></button>
+                                <button onClick={() => updateAppointmentStatus(app.id, 'CANCELADO')} className={`bg-white/10 text-zinc-500 hover:text-red-500 rounded-lg transition-all ${compactView ? 'p-0.5' : 'p-1.5'}`} title="Cancelar"><X size={compactView ? 9 : 12}/></button>
+                              </div>
                             </div>
-                            <div className={`flex items-center justify-end gap-1 ${compactView ? 'mt-0.5' : 'mt-2'}`}>
-                               <button onClick={() => updateAppointmentStatus(app.id, 'CONCLUIDO_PAGO')} className={`rounded-lg transition-all ${app.status === 'CONCLUIDO_PAGO' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-zinc-500 hover:text-white'} ${compactView ? 'p-0.5' : 'p-1.5'}`} title="Marcar como Pago"><DollarSign size={compactView ? 9 : 12}/></button>
-                               <button onClick={() => setShowRescheduleModal(app)} className={`bg-white/10 text-zinc-500 hover:text-white rounded-lg transition-all ${compactView ? 'p-0.5' : 'p-1.5'}`} title="Reagendar"><RefreshCw size={compactView ? 9 : 12}/></button>
-                               <button onClick={() => updateAppointmentStatus(app.id, 'CANCELADO')} className={`bg-white/10 text-zinc-500 hover:text-red-500 rounded-lg transition-all ${compactView ? 'p-0.5' : 'p-1.5'}`} title="Cancelar"><X size={compactView ? 9 : 12}/></button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
+                          )})}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         ) : (
           <div className="p-6 space-y-3 overflow-y-auto h-full scrollbar-hide">
-             {appointmentsToday.length === 0 && <p className="text-center py-20 text-zinc-600 font-black uppercase text-[10px] italic">Nenhum agendamento para hoje.</p>}
-             {appointmentsToday.map(app => (
+             {displayedAppointments.length === 0 && <p className="text-center py-20 text-zinc-600 font-black uppercase text-[10px] italic">Nenhum agendamento encontrado.</p>}
+             {displayedAppointments.map(app => (
                <div key={app.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-[#D4AF37]/30 transition-all">
                   <div className="flex items-center gap-4">
                      <div className={`w-10 h-10 rounded-xl border flex items-center justify-center ${app.status === 'CONCLUIDO_PAGO' ? 'border-emerald-500 text-emerald-500 bg-emerald-500/10' : 'border-[#D4AF37] text-[#D4AF37] bg-[#D4AF37]/10'}`}>
@@ -143,6 +210,7 @@ const Appointments: React.FC = () => {
                      <div>
                         <p className="text-xs font-black">{app.clientName} • <span className="text-[#D4AF37]">{app.startTime}</span></p>
                         <p className="text-[9px] text-zinc-500 font-black uppercase tracking-widest">{app.serviceName} com {app.professionalName}</p>
+                        <p className="text-[8px] text-zinc-600 font-black">{new Date(app.date).toLocaleDateString('pt-BR')}</p>
                      </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -156,7 +224,6 @@ const Appointments: React.FC = () => {
         )}
       </div>
 
-      {/* Modais omitidos por brevidade mas restaurados conforme lógica anterior de novo cliente e novo agendamento */}
       {showRescheduleModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl animate-in zoom-in-95">
           <div className="cartao-vidro w-full max-w-sm rounded-[2.5rem] p-10 space-y-8 border-[#D4AF37]/30 shadow-2xl">
