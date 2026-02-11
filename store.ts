@@ -90,8 +90,8 @@ export function BarberProvider({ children }: { children?: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [config, setConfig] = useState<ShopConfig>({
-    name: "Barbearia Sr. JosÃ©",
-    description: "TradiÃ§Ã£o em SÃ£o GonÃ§alo",
+    name: "",
+    description: "",
     aboutTitle: "",
     aboutText: "",
     address: "",
@@ -239,8 +239,38 @@ export function BarberProvider({ children }: { children?: ReactNode }) {
   };
 
   const updateAppointmentStatus = async (id: string, status: any) => {
-    await updateDoc(doc(db, COLLECTIONS.APPOINTMENTS, id), { status });
-  };
+  await updateDoc(doc(db, COLLECTIONS.APPOINTMENTS, id), { status });
+  
+  // NOVO: Criar receita automática ao marcar como CONCLUÍDO_PAGO
+  if (status === 'CONCLUIDO_PAGO') {
+    const appointment = appointments.find(a => a.id === id);
+    if (appointment) {
+      // Identificador único para evitar duplicação
+      const entryDescription = `Agendamento #${id.substring(0, 8)} - ${appointment.serviceName}`;
+      
+      // Verificar se já existe lançamento para este agendamento
+      const existingEntry = financialEntries.find(
+        e => e.description === entryDescription
+      );
+      
+      // Só adicionar se não existir
+      if (!existingEntry) {
+        await addDoc(collection(db, COLLECTIONS.FINANCIAL), {
+          description: entryDescription,
+          amount: appointment.price,
+          type: 'RECEITA',
+          category: 'Serviços',
+          date: new Date().toISOString().split('T')[0],
+          appointmentId: id // Referência ao agendamento
+        });
+        
+        console.log(`✅ Receita criada automaticamente: R$ ${appointment.price}`);
+      } else {
+        console.log('ℹ️ Receita já existe para este agendamento');
+      }
+    }
+  }
+};
 
   const rescheduleAppointment = async (id: string, date: string, startTime: string, endTime: string) => {
     await updateDoc(doc(db, COLLECTIONS.APPOINTMENTS, id), { date, startTime, endTime });
