@@ -144,7 +144,25 @@ export function BarberProvider({ children }: { children?: ReactNode }) {
         setSuggestions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Suggestion)));
       }),
       onSnapshot(doc(db, COLLECTIONS.CONFIG, 'main'), (doc) => {
-        if (doc.exists()) setConfig(doc.data() as ShopConfig);
+        if (doc.exists()) {
+          const configData = doc.data() as ShopConfig;
+          setConfig(configData);
+          
+          // ✅ CORREÇÃO: Se houver usuário admin logado, atualizar com o nome do Firebase
+          const savedUser = localStorage.getItem('brb_user');
+          if (savedUser) {
+            const parsedUser = JSON.parse(savedUser);
+            if (parsedUser.role === 'ADMIN' && configData.adminName) {
+              const updatedUser = {
+                ...parsedUser,
+                name: configData.adminName,
+                avatar: configData.logo
+              };
+              setUser(updatedUser);
+              localStorage.setItem('brb_user', JSON.stringify(updatedUser));
+            }
+          }
+        }
       })
     ];
 
@@ -156,19 +174,37 @@ export function BarberProvider({ children }: { children?: ReactNode }) {
 
   const login = async (id: string, pass: string) => {
     if (id === 'srjoseadm@gmail.com' && pass === '654321') {
-      setUser({ id: 'admin', name: 'Sr. JosÃ©', email: id, role: 'ADMIN' });
+      // ✅ CORREÇÃO: Carregar nome do Firebase ao fazer login
+      const adminName = config.adminName || 'Sr. José';
+      const adminAvatar = config.logo || 'https://i.pravatar.cc/150';
+      
+      setUser({ 
+        id: 'admin', 
+        name: adminName, 
+        email: id, 
+        role: 'ADMIN',
+        avatar: adminAvatar
+      });
       return;
     }
     const client = clients.find(c => (c.phone === id || c.email === id) && c.password === pass);
     if (client) {
       setUser({ id: client.id, name: client.name, email: client.email, role: 'CLIENTE', phone: client.phone });
     } else {
-      throw new Error('Credenciais invÃ¡lidas');
+      throw new Error('Credenciais inválidas');
     }
   };
 
   const logout = () => setUser(null);
-  const updateUser = (data: Partial<User>) => setUser(prev => prev ? { ...prev, ...data } : null);
+  
+  const updateUser = (data: Partial<User>) => {
+    setUser(prev => {
+      if (!prev) return null;
+      const updated = { ...prev, ...data };
+      localStorage.setItem('brb_user', JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   const addClient = async (data: any) => {
     const docRef = await addDoc(collection(db, COLLECTIONS.CLIENTS), {
@@ -239,38 +275,35 @@ export function BarberProvider({ children }: { children?: ReactNode }) {
   };
 
   const updateAppointmentStatus = async (id: string, status: any) => {
-  await updateDoc(doc(db, COLLECTIONS.APPOINTMENTS, id), { status });
-  
-  // NOVO: Criar receita automática ao marcar como CONCLUÍDO_PAGO
-  if (status === 'CONCLUIDO_PAGO') {
-    const appointment = appointments.find(a => a.id === id);
-    if (appointment) {
-      // Identificador único para evitar duplicação
-      const entryDescription = `Agendamento #${id.substring(0, 8)} - ${appointment.serviceName}`;
-      
-      // Verificar se já existe lançamento para este agendamento
-      const existingEntry = financialEntries.find(
-        e => e.description === entryDescription
-      );
-      
-      // Só adicionar se não existir
-      if (!existingEntry) {
-        await addDoc(collection(db, COLLECTIONS.FINANCIAL), {
-          description: entryDescription,
-          amount: appointment.price,
-          type: 'RECEITA',
-          category: 'Serviços',
-          date: new Date().toISOString().split('T')[0],
-          appointmentId: id // Referência ao agendamento
-        });
+    await updateDoc(doc(db, COLLECTIONS.APPOINTMENTS, id), { status });
+    
+    // Criar receita automática ao marcar como CONCLUÍDO_PAGO
+    if (status === 'CONCLUIDO_PAGO') {
+      const appointment = appointments.find(a => a.id === id);
+      if (appointment) {
+        const entryDescription = `Agendamento #${id.substring(0, 8)} - ${appointment.serviceName}`;
         
-        console.log(`✅ Receita criada automaticamente: R$ ${appointment.price}`);
-      } else {
-        console.log('ℹ️ Receita já existe para este agendamento');
+        const existingEntry = financialEntries.find(
+          e => e.description === entryDescription
+        );
+        
+        if (!existingEntry) {
+          await addDoc(collection(db, COLLECTIONS.FINANCIAL), {
+            description: entryDescription,
+            amount: appointment.price,
+            type: 'RECEITA',
+            category: 'Serviços',
+            date: new Date().toISOString().split('T')[0],
+            appointmentId: id
+          });
+          
+          console.log(`✅ Receita criada automaticamente: R$ ${appointment.price}`);
+        } else {
+          console.log('ℹ️ Receita já existe para este agendamento');
+        }
       }
     }
-  }
-};
+  };
 
   const rescheduleAppointment = async (id: string, date: string, startTime: string, endTime: string) => {
     await updateDoc(doc(db, COLLECTIONS.APPOINTMENTS, id), { date, startTime, endTime });
@@ -293,7 +326,6 @@ export function BarberProvider({ children }: { children?: ReactNode }) {
       ...data,
       date: new Date().toLocaleDateString('pt-BR')
     });
-    // Criar notificação para ADM
     await addDoc(collection(db, COLLECTIONS.NOTIFICATIONS), {
       title: 'Nova Sugestão',
       message: `${data.clientName} enviou uma sugestão`,
