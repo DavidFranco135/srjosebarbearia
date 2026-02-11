@@ -260,7 +260,10 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
           <main className="max-w-6xl mx-auto w-full px-6 flex-1 -mt-10 relative z-30 pb-40">
              {/* 1. Destaques da Casa */}
              <section className="mb-20 pt-10">
-                <h2 className={`text-2xl font-black font-display italic mb-8 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Destaques da Casa <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
+                <h2 className={`text-2xl font-black font-display italic mb-8 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>
+                  Destaques da Casa 
+                  <span className="h-1 flex-1 gradiente-ouro opacity-10"></span>
+                </h2>
                 <div className="relative group">
                   <button 
                     onClick={() => destaqueRef.current?.scrollBy({ left: -300, behavior: 'smooth' })}
@@ -303,7 +306,10 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
              {/* 2. Nossos Rituais */}
              <section className="mb-24" id="catalogo">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-                   <h2 className={`text-2xl font-black font-display italic flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Todos os serviços <div className="h-1 w-10 gradiente-ouro opacity-10"></div></h2>
+                   <h2 className={`text-2xl font-black font-display italic flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>
+                     Todos os serviços 
+                     <span className="h-1 w-10 gradiente-ouro opacity-10"></span>
+                   </h2>
                 </div>
                 <div className="space-y-4">
                    {categories.filter(cat => cat !== 'Todos').map(cat => {
@@ -358,7 +364,7 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
                 <h2 className={`text-2xl font-black font-display italic mb-10 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>
                   <Crown className="text-[#D4AF37]" size={28} />
                   Planos VIP
-                  <div className="h-1 flex-1 gradiente-ouro opacity-10"></div>
+                  <span className="h-1 flex-1 gradiente-ouro opacity-10"></span>
                 </h2>
                 <div className="grid md:grid-cols-2 gap-6">
                   {config.vipPlans.filter(p => p.status === 'ATIVO').map(plan => (
@@ -409,7 +415,10 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
 
              {/* 3. A Experiência Signature */}
              <section className="mb-24">
-                <h2 className={`text-2xl font-black font-display italic mb-8 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Nosso Ambiente. <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
+                <h2 className={`text-2xl font-black font-display italic mb-8 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>
+                  Nosso Ambiente. 
+                  <span className="h-1 flex-1 gradiente-ouro opacity-10"></span>
+                </h2>
                 <div className="relative group">
                   <button 
                     onClick={() => experienciaRef.current?.scrollBy({ left: -500, behavior: 'smooth' })}
@@ -445,7 +454,10 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
 
              {/* 4. Voz dos Membros */}
              <section className="mb-24 py-10 -mx-6 px-6 bg-black">
-                <h2 className={`text-2xl font-black font-display italic mb-10 flex items-center gap-6 text-white`}>Avaliações dos clientes <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
+                <h2 className={`text-2xl font-black font-display italic mb-10 flex items-center gap-6 text-white`}>
+                  Avaliações dos clientes 
+                  <span className="h-1 flex-1 gradiente-ouro opacity-10"></span>
+                </h2>
                 <div className="relative group">
                   <button 
                     onClick={() => membroRef.current?.scrollBy({ left: -400, behavior: 'smooth' })}
@@ -493,7 +505,10 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
 
              {/* 5. Nossos Profissionais */}
              <section className="mb-24">
-                <h2 className={`text-2xl font-black font-display italic mb-10 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Nossos Artífices <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
+                <h2 className={`text-2xl font-black font-display italic mb-10 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>
+                  Nossos Artífices 
+                  <span className="h-1 flex-1 gradiente-ouro opacity-10"></span>
+                </h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                    {professionals.map(prof => (
                       <div key={prof.id} className={`rounded-[2rem] p-6 text-center space-y-4 group transition-all hover:scale-105 ${theme === 'light' ? 'bg-white border border-zinc-200 hover:border-blue-300' : 'cartao-vidro border-white/5 hover:border-[#D4AF37]/30'}`}>
@@ -519,7 +534,10 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
 
              {/* 6. Onde Nos Encontrar */}
              <section className="mb-24">
-                <h2 className={`text-2xl font-black font-display italic mb-10 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Onde Nos Encontrar <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
+                <h2 className={`text-2xl font-black font-display italic mb-10 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>
+                  Onde Nos Encontrar 
+                  <span className="h-1 flex-1 gradiente-ouro opacity-10"></span>
+                </h2>
                 <div className={`rounded-[2.5rem] overflow-hidden shadow-2xl ${theme === 'light' ? 'border border-zinc-200' : 'border border-white/5'}`}>
                    <div className="h-48 bg-zinc-900 flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-90 transition-all" onClick={() => config.locationUrl && window.open(config.locationUrl, '_blank')}>
                       {config.locationImage ? (
@@ -560,7 +578,10 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
 
              {/* 8. Quem Somos */}
              <section className="mb-24">
-                <h2 className={`text-2xl font-black font-display italic mb-10 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{config.aboutTitle || 'Quem Somos'} <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
+                <h2 className={`text-2xl font-black font-display italic mb-10 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>
+                  {config.aboutTitle || 'Quem Somos'} 
+                  <span className="h-1 flex-1 gradiente-ouro opacity-10"></span>
+                </h2>
                 <div className={`rounded-[2.5rem] p-8 md:p-12 ${theme === 'light' ? 'bg-white border border-zinc-200' : 'cartao-vidro border-white/5'}`}>
                    <div className="grid md:grid-cols-2 gap-8 items-center">
                       {config.aboutImage && (
@@ -814,7 +835,10 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
                     <div className="space-y-6">
                       {(Object.entries(turnos) as [string, string[]][]).map(([turno, horarios]) => (
                         <div key={turno} className="space-y-4">
-                          <h4 className={`text-[9px] font-black uppercase tracking-widest flex items-center gap-4 ${theme === 'light' ? 'text-blue-600' : 'text-[#D4AF37]'}`}>{turno === 'manha' ? 'Manhã' : turno === 'tarde' ? 'Tarde' : 'Noite'} <div className={`h-px flex-1 ${theme === 'light' ? 'bg-zinc-200' : 'bg-white/5'}`}></div></h4>
+                          <h4 className={`text-[9px] font-black uppercase tracking-widest flex items-center gap-4 ${theme === 'light' ? 'text-blue-600' : 'text-[#D4AF37]'}`}>
+                            {turno === 'manha' ? 'Manhã' : turno === 'tarde' ? 'Tarde' : 'Noite'} 
+                            <span className={`h-px flex-1 ${theme === 'light' ? 'bg-zinc-200' : 'bg-white/5'}`}></span>
+                          </h4>
                           <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                             {horarios.map(t => {
                                const isOccupied = checkAvailability(selecao.date, t, selecao.professionalId);
