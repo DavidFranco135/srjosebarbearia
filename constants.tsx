@@ -1,5 +1,4 @@
-
-import { Service, Professional, Client, Appointment, ShopConfig } from './types';
+import { Service, Professional, Client, Appointment, ShopConfig, VipPlan } from './types';
 
 export const CORES = {
   primaria: '#D4AF37',
@@ -10,7 +9,42 @@ export const CORES = {
   acento: '#E5C76B',
 };
 
-// Fix: Added missing 'aboutTitle' and 'aboutText' properties to satisfy ShopConfig interface
+// Planos VIP de exemplo
+export const MOCK_VIP_PLANS: VipPlan[] = [
+  {
+    id: 'vip_1',
+    name: 'Plano Essencial',
+    price: 150,
+    duration: 'MENSAL',
+    benefits: [
+      '2 cortes mensais',
+      '15% de desconto em outros serviços',
+      'Agendamento prioritário',
+      'Café premium durante o atendimento'
+    ],
+    discount: 15,
+    image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=800',
+    active: true
+  },
+  {
+    id: 'vip_2',
+    name: 'Plano Premium',
+    price: 1500,
+    duration: 'ANUAL',
+    benefits: [
+      'Cortes ilimitados',
+      '30% de desconto em todos os serviços',
+      'Agendamento VIP exclusivo',
+      'Produto de finalização premium',
+      'Acesso a eventos exclusivos',
+      'Presente de aniversário'
+    ],
+    discount: 30,
+    image: 'https://images.unsplash.com/photo-1599351431247-f13b283253c9?q=80&w=800',
+    active: true
+  }
+];
+
 export const CONFIG_LOJA: ShopConfig = {
   name: "Barbearia Sr. José",
   description: "Referência em São Gonçalo desde 1995. Unimos a tradição da barbearia clássica with as técnicas mais modernas de visagismo masculino. Um refúgio de bem-estar para o homem contemporâneo.",
@@ -30,7 +64,8 @@ export const CONFIG_LOJA: ShopConfig = {
   email: "contato@srjose.com.br",
   cnpj: "00.000.000/0001-00",
   gallery: [],
-  reviews: []
+  reviews: [],
+  vipPlans: MOCK_VIP_PLANS
 };
 
 export const MOCK_SERVICOS: Service[] = [
@@ -48,7 +83,6 @@ export const MOCK_PROFISSIONAIS: Professional[] = [
     specialties: ['1', '2', '3'],
     avatar: 'https://images.unsplash.com/photo-1534030347209-467a5b0ad3e6?q=80&w=150',
     commission: 60,
-    // Fix: Added missing 'likes' property
     likes: 0,
     workingHours: { start: "08:00", end: "20:00" },
   },
@@ -58,7 +92,6 @@ export const MOCK_PROFISSIONAIS: Professional[] = [
     specialties: ['1', '2'],
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150',
     commission: 50,
-    // Fix: Added missing 'likes' property
     likes: 0,
     workingHours: { start: "09:00", end: "19:00" },
   }
