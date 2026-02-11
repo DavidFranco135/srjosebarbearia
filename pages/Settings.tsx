@@ -68,8 +68,12 @@ const Settings: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // 1. Atualizar configurações no Firebase
-      const updatedConfig = { ...formData, logo: userData.avatar };
+      // 1. Atualizar configurações no Firebase (incluindo o nome do admin)
+      const updatedConfig = { 
+        ...formData, 
+        logo: userData.avatar,
+        adminName: userData.name  // ✅ SALVAR NOME NO FIREBASE
+      };
       await updateConfig(updatedConfig);
       
       // 2. Atualizar dados do usuário no contexto
@@ -81,7 +85,7 @@ const Settings: React.FC = () => {
         };
         updateUser(updatedUserData);
         
-        // 3. Persistir TAMBÉM no localStorage para garantir que salva
+        // 3. Atualizar localStorage também (sincronização imediata)
         localStorage.setItem('brb_user', JSON.stringify(updatedUserData));
       }
       
