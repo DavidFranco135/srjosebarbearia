@@ -22,9 +22,10 @@ const Appointments: React.FC = () => {
   const [newApp, setNewApp] = useState({ clientId: '', serviceId: '', professionalId: '', startTime: '09:00' });
   const [quickClient, setQuickClient] = useState({ name: '', phone: '' });
   const [filterPeriod, setFilterPeriod] = useState<'day' | 'month' | 'all'>('day');
-  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
 
   const hours = useMemo(() => Array.from({ length: 14 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), []);
+  const appointmentsToday = useMemo(() => appointments.filter(a => a.date === currentDate), [appointments, currentDate]);
   
   const appointmentsFiltered = useMemo(() => {
     if (filterPeriod === 'day') {
@@ -35,8 +36,6 @@ const Appointments: React.FC = () => {
       return appointments;
     }
   }, [appointments, currentDate, selectedMonth, filterPeriod]);
-
-  const appointmentsToday = useMemo(() => appointments.filter(a => a.date === currentDate), [appointments, currentDate]);
 
   const handleQuickClient = async () => {
     if(!quickClient.name || !quickClient.phone) return alert("Preencha nome e telefone");
@@ -117,26 +116,26 @@ const Appointments: React.FC = () => {
           </div>
           
           {filterPeriod === 'day' && (
-            <div className="flex items-center bg-white/5 border border-white/10 rounded-xl p-1">
-              <button onClick={() => { const d = new Date(currentDate); d.setDate(d.getDate() - 1); setCurrentDate(d.toISOString().split('T')[0]); }} className="p-2 text-zinc-400 hover:text-white"><ChevronLeft size={20} /></button>
-              <span className="px-4 text-[10px] font-black uppercase tracking-widest">{new Date(currentDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</span>
-              <button onClick={() => { const d = new Date(currentDate); d.setDate(d.getDate() + 1); setCurrentDate(d.toISOString().split('T')[0]); }} className="p-2 text-zinc-400 hover:text-white"><ChevronRight size={20} /></button>
+            <div className={`flex items-center border rounded-xl p-1 ${theme === 'light' ? 'bg-zinc-50 border-zinc-200' : 'bg-white/5 border-white/10'}`}>
+              <button onClick={() => { const d = new Date(currentDate); d.setDate(d.getDate() - 1); setCurrentDate(d.toISOString().split('T')[0]); }} className={`p-2 transition-all ${theme === 'light' ? 'text-zinc-600 hover:text-zinc-900' : 'text-zinc-400 hover:text-white'}`}><ChevronLeft size={20} /></button>
+              <span className={`px-4 text-[10px] font-black uppercase tracking-widest ${theme === 'light' ? 'text-zinc-700' : 'text-zinc-300'}`}>{new Date(currentDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</span>
+              <button onClick={() => { const d = new Date(currentDate); d.setDate(d.getDate() + 1); setCurrentDate(d.toISOString().split('T')[0]); }} className={`p-2 transition-all ${theme === 'light' ? 'text-zinc-600 hover:text-zinc-900' : 'text-zinc-400 hover:text-white'}`}><ChevronRight size={20} /></button>
             </div>
           )}
           
           {filterPeriod === 'month' && (
-            <div className="flex items-center bg-white/5 border border-white/10 rounded-xl p-1">
+            <div className={`flex items-center border rounded-xl p-1 ${theme === 'light' ? 'bg-zinc-50 border-zinc-200' : 'bg-white/5 border-white/10'}`}>
               <button 
                 onClick={() => { 
                   const [year, month] = selectedMonth.split('-').map(Number);
                   const newDate = new Date(year, month - 2, 1);
                   setSelectedMonth(newDate.toISOString().slice(0, 7));
                 }} 
-                className="p-2 text-zinc-400 hover:text-white"
+                className={`p-2 transition-all ${theme === 'light' ? 'text-zinc-600 hover:text-zinc-900' : 'text-zinc-400 hover:text-white'}`}
               >
                 <ChevronLeft size={20} />
               </button>
-              <span className="px-4 text-[10px] font-black uppercase tracking-widest">
+              <span className={`px-4 text-[10px] font-black uppercase tracking-widest ${theme === 'light' ? 'text-zinc-700' : 'text-zinc-300'}`}>
                 {new Date(selectedMonth + '-01').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
               </span>
               <button 
@@ -145,7 +144,7 @@ const Appointments: React.FC = () => {
                   const newDate = new Date(year, month, 1);
                   setSelectedMonth(newDate.toISOString().slice(0, 7));
                 }} 
-                className="p-2 text-zinc-400 hover:text-white"
+                className={`p-2 transition-all ${theme === 'light' ? 'text-zinc-600 hover:text-zinc-900' : 'text-zinc-400 hover:text-white'}`}
               >
                 <ChevronRight size={20} />
               </button>
@@ -199,7 +198,7 @@ const Appointments: React.FC = () => {
         ) : (
           <div className="p-6 space-y-3 overflow-y-auto h-full scrollbar-hide">
              {appointmentsFiltered.length === 0 && (
-               <p className="text-center py-20 text-zinc-600 font-black uppercase text-[10px] italic">
+               <p className={`text-center py-20 font-black uppercase text-[10px] italic ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-600'}`}>
                  Nenhum agendamento {filterPeriod === 'day' ? 'para hoje' : filterPeriod === 'month' ? 'neste mês' : 'encontrado'}.
                </p>
              )}
