@@ -266,6 +266,31 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
                 </div>
              </section>
 
+             {/* NOVO: Planos VIP (Agora acima da Experiência Signature) */}
+             {config.vipPlans && config.vipPlans.length > 0 && (
+                <section className="mb-24">
+                  <h2 className={`text-2xl font-black font-display italic mb-10 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Planos VIP <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {config.vipPlans.filter(p => p.active).map(plan => (
+                      <div key={plan.id} className={`p-8 rounded-[2.5rem] relative overflow-hidden group border transition-all hover:scale-[1.02] ${theme === 'light' ? 'bg-white border-zinc-200' : 'cartao-vidro border-white/10'}`}>
+                        <div className="absolute top-0 right-0 p-4"><Crown className="text-[#D4AF37] opacity-20 group-hover:opacity-100 transition-opacity" size={40}/></div>
+                        <h3 className="text-2xl font-black italic mb-2">{plan.name}</h3>
+                        <div className="flex items-baseline gap-1 mb-6">
+                          <span className="text-3xl font-black text-[#D4AF37]">R$ {plan.price.toFixed(2)}</span>
+                          <span className="text-xs font-bold text-zinc-500 uppercase">/{plan.duration === 'MENSAL' ? 'mês' : 'ano'}</span>
+                        </div>
+                        <ul className="space-y-3 mb-8">
+                          {plan.benefits.map((b, i) => (
+                            <li key={i} className="flex items-center gap-3 text-sm text-zinc-400"><Check size={16} className="text-[#D4AF37]"/> {b}</li>
+                          ))}
+                        </ul>
+                        <button onClick={() => setView('LOGIN')} className="w-full py-4 rounded-xl gradiente-ouro text-black font-black text-[10px] uppercase tracking-widest shadow-xl">Tornar-se Membro</button>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+             )}
+
              {/* 3. A Experiência Signature */}
              <section className="mb-24">
                 <h2 className={`text-2xl font-black font-display italic mb-8 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>A Experiência Signature <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
@@ -337,37 +362,89 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
           </main>
 
           <footer className={`py-10 text-center border-t ${theme === 'light' ? 'border-zinc-200 bg-zinc-50 text-zinc-600' : 'border-white/5 bg-white/[0.01] text-zinc-600'}`}>
-            <p className="text-[10px] font-black uppercase tracking-widest">© 2025 {config.name}. Todos os direitos reservados.</p>
+            <p className="text-[10px] font-black uppercase tracking-widest">© 2025 {config.name}. PRODUZIDO POR ©NIKLAUS. Todos os direitos reservados.</p>
           </footer>
         </div>
       )}
 
-      {/* Outras Views (BOOKING, LOGIN, DASHBOARD) */}
+      {/* View: Agendamento */}
       {view === 'BOOKING' && (
          <div className="animate-in slide-in-from-bottom-10 p-6 max-w-lg mx-auto w-full">
-            {/* Mantendo sua lógica de agendamento original aqui */}
-            <button onClick={() => setView('HOME')} className="mb-6 flex items-center gap-2 text-[10px] font-black uppercase"><ChevronLeft size={16}/> Voltar</button>
-            <div className={`p-8 rounded-[2rem] ${theme === 'light' ? 'bg-white' : 'cartao-vidro'}`}>
+            <button onClick={() => setView('HOME')} className="mb-6 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"><ChevronLeft size={16}/> Voltar</button>
+            <div className={`p-8 rounded-[2rem] ${theme === 'light' ? 'bg-white border border-zinc-200' : 'cartao-vidro border-white/10'}`}>
                <h2 className="text-2xl font-black italic mb-6 text-[#D4AF37]">Novo Agendamento</h2>
-               {/* Passo a passo do agendamento... */}
-               <button onClick={handleConfirmBooking} className="w-full mt-8 gradiente-ouro text-black py-4 rounded-xl font-black uppercase">Confirmar Reserva</button>
+               
+               {/* Passo 2: Profissional */}
+               {passo === 2 && (
+                 <div className="space-y-6">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Selecione o Artífice</p>
+                    <div className="grid grid-cols-2 gap-4">
+                       {professionals.map(p => (
+                          <button key={p.id} onClick={() => { setSelecao(prev => ({ ...prev, professionalId: p.id })); setPasso(3); }} className={`p-4 rounded-2xl border text-center transition-all ${selecao.professionalId === p.id ? 'border-[#D4AF37] bg-[#D4AF37]/10' : 'border-white/5 hover:bg-white/5'}`}>
+                             <img src={p.avatar} className="w-16 h-16 rounded-xl mx-auto mb-3 object-cover" alt="" />
+                             <span className="text-xs font-black block">{p.name}</span>
+                          </button>
+                       ))}
+                    </div>
+                 </div>
+               )}
+
+               {/* Passo 3: Data e Hora */}
+               {passo === 3 && (
+                 <div className="space-y-8 animate-in fade-in">
+                    <input type="date" value={selecao.date} onChange={e => setSelecao(prev => ({ ...prev, date: e.target.value }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl font-black text-sm" />
+                    {selecao.date && (
+                       <div className="space-y-6">
+                          {['manha', 'tarde', 'noite'].map(turno => (
+                             <div key={turno} className="space-y-3">
+                                <p className="text-[9px] font-black uppercase text-zinc-500 tracking-widest">{turno}</p>
+                                <div className="grid grid-cols-4 gap-2">
+                                   {turnos[turno as keyof typeof turnos].map(t => (
+                                      <button key={t} onClick={() => { setSelecao(prev => ({ ...prev, time: t })); setPasso(4); }} className={`py-3 rounded-lg border text-[10px] font-black ${selecao.time === t ? 'bg-[#D4AF37] text-black border-[#D4AF37]' : 'border-white/10 hover:bg-white/5'}`}>{t}</button>
+                                   ))}
+                                </div>
+                             </div>
+                          ))}
+                       </div>
+                    )}
+                 </div>
+               )}
+
+               {/* Passo 4: Identificação */}
+               {passo === 4 && (
+                 <div className="space-y-4 animate-in fade-in">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Dados do Membro</p>
+                    <input type="text" placeholder="Nome Completo" value={selecao.clientName} onChange={e => setSelecao(prev => ({ ...prev, clientName: e.target.value }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl" />
+                    <input type="tel" placeholder="WhatsApp (DDD)" value={selecao.clientPhone} onChange={e => setSelecao(prev => ({ ...prev, clientPhone: e.target.value }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl" />
+                    <input type="email" placeholder="E-mail" value={selecao.clientEmail} onChange={e => setSelecao(prev => ({ ...prev, clientEmail: e.target.value }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl" />
+                    <button onClick={handleConfirmBooking} disabled={loading} className="w-full gradiente-ouro text-black py-4 rounded-xl font-black uppercase tracking-widest text-[10px] mt-6 shadow-xl active:scale-95 transition-all">
+                       {loading ? 'Processando...' : 'Confirmar Ritual'}
+                    </button>
+                 </div>
+               )}
             </div>
          </div>
       )}
 
+      {/* View: Login Portal */}
       {view === 'LOGIN' && (
          <div className="flex-1 flex items-center justify-center p-6">
-            <div className={`w-full max-w-md p-10 rounded-[2.5rem] space-y-8 ${theme === 'light' ? 'bg-white' : 'cartao-vidro border-white/10'}`}>
-               <h2 className="text-3xl font-black italic text-center text-[#D4AF37]">Portal do Membro</h2>
-               <input type="text" placeholder="E-mail ou Celular" value={loginIdentifier} onChange={e => setLoginIdentifier(e.target.value)} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl" />
-               <input type="password" placeholder="Sua Senha" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl" />
-               <button onClick={handleLoginPortal} className="w-full gradiente-ouro text-black py-4 rounded-xl font-black uppercase">Acessar</button>
-               <button onClick={() => setView('HOME')} className="w-full text-[10px] font-black uppercase text-zinc-500">Voltar</button>
+            <div className={`w-full max-w-md p-10 rounded-[2.5rem] space-y-8 ${theme === 'light' ? 'bg-white shadow-xl border border-zinc-200' : 'cartao-vidro border-white/10'}`}>
+               <div className="text-center space-y-2">
+                  <h2 className="text-3xl font-black italic text-[#D4AF37]">Portal do Membro</h2>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Gerencie sua experiência</p>
+               </div>
+               <div className="space-y-4">
+                  <input type="text" placeholder="E-mail ou Celular" value={loginIdentifier} onChange={e => setLoginIdentifier(e.target.value)} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm" />
+                  <input type="password" placeholder="Sua Senha" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm" />
+                  <button onClick={handleLoginPortal} className="w-full gradiente-ouro text-black py-4 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl transition-all active:scale-95">Acessar Portal</button>
+               </div>
+               <button onClick={() => setView('HOME')} className="w-full text-[10px] font-black uppercase text-zinc-500 tracking-widest hover:text-white transition-colors">Voltar para Início</button>
             </div>
          </div>
       )}
 
-      {/* MODAL DO PROFISSIONAL */}
+      {/* Modal de Histórico do Profissional */}
       {showProfessionalModal && selectedProfessional && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/90 backdrop-blur-sm">
            <div className={`w-full max-w-xl rounded-[3rem] overflow-hidden shadow-2xl animate-in zoom-in duration-300 ${theme === 'light' ? 'bg-white' : 'bg-[#0A0A0A] border border-white/10'}`}>
@@ -377,14 +454,17 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
                  <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between">
                     <div>
                        <h2 className="text-3xl font-black font-display italic text-white">{selectedProfessional.name}</h2>
-                       <p className="text-[#D4AF37] text-[10px] font-black uppercase tracking-widest">{selectedProfessional.specialty}</p>
+                       <div className="bg-[#D4AF37] text-black px-3 py-1 rounded-full inline-block mt-2 font-black text-[8px] uppercase tracking-widest">Master Artífice</div>
                     </div>
                  </div>
               </div>
+              
               <div className="p-10">
-                 <h3 className="text-xl font-black italic mb-4">História</h3>
-                 <p className="text-sm text-zinc-400 leading-relaxed">{selectedProfessional.description || "Este profissional ainda não compartilhou sua história."}</p>
-                 <button onClick={() => setShowProfessionalModal(false)} className="w-full mt-8 gradiente-ouro text-black py-5 rounded-2xl font-black uppercase">Fechar</button>
+                 <h3 className={`text-xl font-black font-display italic mb-4 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>História</h3>
+                 <p className={`text-sm leading-relaxed whitespace-pre-line ${theme === 'light' ? 'text-zinc-700' : 'text-zinc-400'}`}>
+                   {selectedProfessional.description || "Este profissional ainda não compartilhou sua história."}
+                 </p>
+                 <button onClick={() => setShowProfessionalModal(false)} className="w-full mt-8 gradiente-ouro text-black py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl">Fechar</button>
               </div>
            </div>
         </div>
