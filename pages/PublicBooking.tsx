@@ -4,7 +4,7 @@ import {
   History, Sparkles, Instagram, Star, Heart, LogOut, MessageSquare, Quote, Mail, Upload, Save, Lock, Send, X, Crown, CheckCircle2
 } from 'lucide-react';
 import { useBarberStore } from '../store';
-import { Service, Review, Professional, Client, Suggestion } from '../types';
+import { Service, Review, Professional, Client } from '../types';
 
 interface PublicBookingProps {
   initialView?: 'HOME' | 'BOOKING' | 'LOGIN' | 'CLIENT_DASHBOARD';
@@ -127,108 +127,102 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
       alert("Por favor, preencha todos os dados de identificação.");
       return;
     }
-
-    setLoading(true);
-    setBookingError(null);
-    const selectedService = services.find(s => s.id === selecao.serviceId);
-    const selectedProf = professionals.find(p => p.id === selecao.professionalId);
-
-    if (!selectedService || !selectedProf) {
-      setBookingError("Serviço ou profissional não encontrado");
-      setLoading(false);
+    if (checkAvailability(selecao.date, selecao.time, selecao.professionalId)) {
+      setBookingError("Este horário acabou de ser ocupado. Por favor, escolha outro.");
       return;
     }
 
-    const durationMin = selectedService.durationMinutes;
-    const [hour, min] = selecao.time.split(':').map(Number);
-    const endDate = new Date();
-    endDate.setHours(hour, min + durationMin);
-    const endTime = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
-
-    const existingClient = clients.find(c => c.phone === selecao.clientPhone || c.email === selecao.clientEmail);
-    let clientId = existingClient?.id;
-
-    if (!existingClient) {
-      try {
-        const newClient = await addClient({
-          name: selecao.clientName,
-          phone: selecao.clientPhone,
-          email: selecao.clientEmail,
-          password: Math.random().toString(36).substring(7)
-        } as any);
-        clientId = newClient.id;
-      } catch (err) {
-        setBookingError("Erro ao registrar cliente");
-        setLoading(false);
-        return;
-      }
-    }
-
+    setLoading(true);
     try {
-      await addAppointment({
-        serviceId: selecao.serviceId,
-        professionalId: selecao.professionalId,
-        clientId: clientId!,
-        clientName: selecao.clientName,
-        clientPhone: selecao.clientPhone,
-        date: selecao.date,
-        startTime: selecao.time,
-        endTime,
-        serviceName: selectedService.name,
-        professionalName: selectedProf.name,
-        price: selectedService.price
-      }, true);
+      const client = await addClient({ name: selecao.clientName, phone: selecao.clientPhone, email: selecao.clientEmail });
+      const serv = services.find(s => s.id === selecao.serviceId);
+      const [h, m] = selecao.time.split(':').map(Number);
+      const endTime = `${Math.floor((h * 60 + m + (serv?.durationMinutes || 30)) / 60).toString().padStart(2, '0')}:${((h * 60 + m + (serv?.durationMinutes || 30)) % 60).toString().padStart(2, '0')}`;
+      await addAppointment({ clientId: client.id, clientName: client.name, clientPhone: client.phone, serviceId: selecao.serviceId, serviceName: serv?.name || '', professionalId: selecao.professionalId, professionalName: professionals.find(p => p.id === selecao.professionalId)?.name || '', date: selecao.date, startTime: selecao.time, endTime, price: serv?.price || 0 }, true);
       setSuccess(true);
-      setTimeout(() => { setSuccess(false); setView('HOME'); setPasso(1); }, 4000);
+    } catch (err) { alert("Erro ao agendar."); }
+    finally { setLoading(false); }
+  };
+
+  const handleLoginPortal = () => {
+    if(!loginIdentifier || !loginPassword) {
+      alert("Preencha e-mail/celular e senha.");
+      return;
+    }
+    const cleanId = loginIdentifier.toLowerCase().replace(/\D/g, '');
+    const client = clients.find(c => c.email.toLowerCase() === loginIdentifier.toLowerCase() || c.phone.replace(/\D/g, '') === cleanId);
+    
+    if (client && client.password === loginPassword) {
+      setLoggedClient(client);
+      setEditData({ name: client.name, phone: client.phone, email: client.email });
+      setNewReview(prev => ({ ...prev, userName: client.name, clientPhone: client.phone }));
+      setView('CLIENT_DASHBOARD');
+      setLoginPassword(''); 
+    } else if (client && client.password !== loginPassword) {
+      alert("Senha incorreta.");
+    } else {
+      alert("Membro não encontrado. Verifique seu e-mail ou celular cadastrado.");
+    }
+  };
+
+  const handleLikeProfessional = async (profId: string) => {
+    if (!loggedClient) {
+      alert("Faça login para curtir um barbeiro.");
+      return;
+    }
+    const alreadyLiked = loggedClient.likedProfessionals?.includes(profId);
+    if (alreadyLiked) {
+      alert("Você já curtiu este barbeiro!");
+      return;
+    }
+    await likeProfessional(profId);
+    const updatedLikedProfessionals = [...(loggedClient.likedProfessionals || []), profId];
+    await updateClient(loggedClient.id, { likedProfessionals: updatedLikedProfessionals });
+    setLoggedClient({ ...loggedClient, likedProfessionals: updatedLikedProfessionals });
+    alert("Curtida registrada com sucesso!");
+  };
+
+  const handleUpdateProfilePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && loggedClient) {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64 = reader.result as string;
+        await updateClient(loggedClient.id, { avatar: base64 });
+        setLoggedClient({ ...loggedClient, avatar: base64 });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSendSuggestion = async () => {
+    if (!suggestionText.trim() || !loggedClient) return;
+    setLoading(true);
+    try {
+      await addSuggestion({
+        clientName: loggedClient.name,
+        clientPhone: loggedClient.phone,
+        text: suggestionText,
+        date: new Date().toISOString()
+      });
+      setSuggestionText('');
+      alert("Sugestão enviada com sucesso!");
     } catch (err) {
-      setBookingError("Erro ao criar agendamento");
+      alert("Erro ao enviar sugestão.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleClientLogin = () => {
-    const client = clients.find(c => (c.phone === loginIdentifier || c.email === loginIdentifier) && c.password === loginPassword);
-    if (client) {
-      setLoggedClient(client);
-      setEditData({ name: client.name, phone: client.phone, email: client.email });
-      setNewReview(prev => ({ ...prev, userName: client.name, clientPhone: client.phone }));
-      setView('CLIENT_DASHBOARD');
-    } else {
-      alert("Credenciais inválidas");
+  const handleAddReview = () => {
+    if (!newReview.comment) return alert("Escreva um comentário!");
+    if (config.reviews?.some(r => r.clientPhone === loggedClient?.phone)) {
+        return alert("Você já deixou sua avaliação exclusiva!");
     }
-  };
-
-  const handleUpdateProfile = async () => {
-    if (!loggedClient) return;
-    try {
-      await updateClient(loggedClient.id, editData);
-      alert("Perfil atualizado com sucesso!");
-    } catch (err) {
-      alert("Erro ao atualizar perfil");
-    }
-  };
-
-  const handleAddSuggestion = async () => {
-    if (!suggestionText.trim() || !loggedClient) return;
-    try {
-      await addSuggestion({ clientName: loggedClient.name, clientPhone: loggedClient.phone, message: suggestionText });
-      setSuggestionText('');
-      alert("Sugestão enviada com sucesso! Obrigado.");
-    } catch (err) {
-      alert("Erro ao enviar sugestão");
-    }
-  };
-
-  const handleAddReview = async () => {
-    if (!newReview.comment.trim() || !newReview.userName || !newReview.clientPhone) {
-      alert("Preencha todos os campos da avaliação.");
-      return;
-    }
-    await addShopReview({ rating: newReview.rating, comment: newReview.comment, userName: newReview.userName, clientPhone: newReview.clientPhone });
+    addShopReview(newReview);
     setShowReviewModal(false);
     setNewReview({ rating: 5, comment: '', userName: loggedClient?.name || '', clientPhone: loggedClient?.phone || '' });
-    alert("Avaliação enviada com sucesso!");
+    alert("Obrigado pela sua avaliação!");
   };
 
   const handleLogout = () => {
@@ -237,510 +231,563 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
     setView('HOME');
   };
 
-  const handleProfessionalClick = (prof: Professional) => {
-    setSelectedProfessional(prof);
-    setShowProfessionalModal(true);
-  };
+  if (success) return (
+    <div className={`min-h-screen flex items-center justify-center p-6 animate-in zoom-in ${theme === 'light' ? 'bg-[#F8F9FA]' : 'bg-[#050505]'}`}>
+      <div className={`w-full max-w-lg p-12 rounded-[3rem] text-center space-y-8 ${theme === 'light' ? 'bg-white border border-zinc-200' : 'cartao-vidro border-[#D4AF37]/30'}`}>
+        <div className="w-20 h-20 gradiente-ouro rounded-full mx-auto flex items-center justify-center"><Check className="w-10 h-10 text-black" /></div>
+        <h2 className="text-3xl font-black font-display italic text-[#D4AF37]">Reserva Confirmada!</h2>
+        <p className={`text-sm ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>Aguardamos você para o seu ritual signature.</p>
+        <button onClick={() => window.location.reload()} className="bg-[#D4AF37] text-black px-10 py-4 rounded-xl text-[10px] font-black uppercase">Voltar à Início</button>
+      </div>
+    </div>
+  );
 
-  if (view === 'CLIENT_DASHBOARD' && loggedClient) {
-    const clientAppointments = appointments.filter(a => a.clientId === loggedClient.id);
-    const vipPlans = config.vipPlans || [];
+  return (
+    <div className={`min-h-screen flex flex-col theme-transition ${theme === 'light' ? 'bg-[#F3F4F6] text-black' : 'bg-[#050505] text-white'}`}>
+      {view === 'HOME' && (
+        <div className="animate-in fade-in flex flex-col min-h-screen">
+          <header className="relative h-[65vh] overflow-hidden flex flex-col items-center justify-center">
+            <img src={config.coverImage} className="absolute inset-0 w-full h-full object-cover brightness-50" alt="Capa" />
+            <div className={`absolute inset-0 bg-gradient-to-t ${theme === 'light' ? 'from-[#F8F9FA] via-transparent to-transparent' : 'from-[#050505] via-transparent to-transparent'}`}></div>
+            <div className="absolute top-6 right-6 z-[100]"><button onClick={() => setView('LOGIN')} className="bg-[#D4AF37] text-black px-6 py-3 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-2xl transition-all hover:scale-105 active:scale-95"><History size={16}/> PORTAL DO MEMBRO</button></div>
+            <div className="relative z-20 text-center px-6 mt-10">
+               <div className="w-28 h-28 rounded-3xl gradiente-ouro p-1 mx-auto mb-6"><div className="w-full h-full rounded-[2.2rem] bg-black overflow-hidden"><img src={config.logo} className="w-full h-full object-cover" alt="Logo" /></div></div>
+               <h1 className={`text-5xl md:text-7xl font-black font-display italic tracking-tight ${theme === 'light' ? 'text-white drop-shadow-lg' : 'text-white'}`}>{config.name}</h1>
+               <p className="text-[#D4AF37] text-[10px] font-black uppercase tracking-[0.4em] mt-3">{config.description}</p>
+            </div>
+          </header>
 
-    return (
-      <div className={`min-h-screen ${theme === 'light' ? 'bg-[#F8F9FA]' : 'bg-[#050505]'}`}>
-        <div className="max-w-6xl mx-auto p-6 md:p-12">
-          <div className="flex items-center justify-between mb-12">
-            <div>
-              <h1 className={`text-4xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Portal do Membro</h1>
-              <p className={`text-xs font-black uppercase tracking-widest mt-2 ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-500'}`}>Bem-vindo, {loggedClient.name}</p>
-            </div>
-            <div className="flex gap-3">
-              <button onClick={() => setView('HOME')} className={`px-6 py-3 rounded-2xl border font-black text-xs uppercase transition-all ${theme === 'light' ? 'bg-white border-zinc-200 text-zinc-700 hover:border-blue-400' : 'bg-white/5 border-white/10 text-white hover:border-[#D4AF37]'}`}>Início</button>
-              <button onClick={handleLogout} className="flex items-center gap-2 bg-red-500/10 text-red-500 px-6 py-3 rounded-2xl font-black text-xs uppercase"><LogOut size={14} /> Sair</button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
-            <div className={`p-8 rounded-[2rem] border ${theme === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'cartao-vidro border-white/5'}`}>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-[#D4AF37] rounded-2xl flex items-center justify-center"><Calendar className="text-black" size={20} /></div>
-                <div>
-                  <p className={`text-[10px] font-black uppercase tracking-widest ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-500'}`}>Agendamentos</p>
-                  <p className={`text-3xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{clientAppointments.length}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className={`p-8 rounded-[2rem] border ${theme === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'cartao-vidro border-white/5'}`}>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center"><Check className="text-white" size={20} /></div>
-                <div>
-                  <p className={`text-[10px] font-black uppercase tracking-widest ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-500'}`}>Concluídos</p>
-                  <p className={`text-3xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{clientAppointments.filter(a => a.status === 'CONCLUIDO_PAGO' || a.status === 'CONCLUIDO').length}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className={`p-8 rounded-[2rem] border ${theme === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'cartao-vidro border-white/5'}`}>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center"><Clock className="text-white" size={20} /></div>
-                <div>
-                  <p className={`text-[10px] font-black uppercase tracking-widest ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-500'}`}>Próximos</p>
-                  <p className={`text-3xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{clientAppointments.filter(a => a.status === 'PENDENTE' || a.status === 'CONFIRMADO').length}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {vipPlans.length > 0 && (
-            <div className="mb-12">
-              <h2 className={`text-2xl font-black font-display italic mb-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Planos VIP Exclusivos</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {vipPlans.filter(plan => plan.status === 'ATIVO').map(plan => (
-                  <div key={plan.id} className={`p-8 rounded-[2rem] border relative overflow-hidden ${theme === 'light' ? 'bg-white border-zinc-200 shadow-lg' : 'cartao-vidro border-[#D4AF37]/30'}`}>
-                    <div className="absolute top-4 right-4">
-                      <Crown className="text-[#D4AF37]" size={24} />
-                    </div>
-                    <h3 className={`text-2xl font-black font-display italic mb-2 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{plan.name}</h3>
-                    <div className="flex items-baseline gap-2 mb-6">
-                      <span className="text-4xl font-black text-[#D4AF37]">R$ {plan.price}</span>
-                      <span className={`text-xs font-black uppercase ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'}`}>/{plan.period === 'MENSAL' ? 'mês' : 'ano'}</span>
-                      {plan.discount && <span className="text-xs font-black text-emerald-500">-{plan.discount}%</span>}
-                    </div>
-                    <ul className="space-y-3 mb-6">
-                      {plan.benefits.map((benefit, idx) => (
-                        <li key={idx} className={`flex items-start gap-3 text-sm ${theme === 'light' ? 'text-zinc-700' : 'text-zinc-400'}`}>
-                          <CheckCircle2 size={16} className="text-[#D4AF37] flex-shrink-0 mt-0.5" />
-                          <span>{benefit}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <button className="w-full gradiente-ouro text-black py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl">Assinar Plano</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
-            <div className={`p-8 rounded-[2rem] border ${theme === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'cartao-vidro border-white/5'}`}>
-              <h2 className={`text-2xl font-black font-display italic mb-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Meu Perfil</h2>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className={`text-[10px] font-black uppercase tracking-widest ml-1 ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>Nome</label>
-                  <input type="text" value={editData.name} onChange={e => setEditData({...editData, name: e.target.value})} className={`w-full border p-4 rounded-xl text-xs font-bold outline-none transition-all ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 focus:border-blue-500' : 'bg-white/5 border-white/10 text-white focus:border-[#D4AF37]'}`} />
-                </div>
-                <div className="space-y-2">
-                  <label className={`text-[10px] font-black uppercase tracking-widest ml-1 ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>WhatsApp</label>
-                  <input type="tel" value={editData.phone} onChange={e => setEditData({...editData, phone: e.target.value})} className={`w-full border p-4 rounded-xl text-xs font-bold outline-none transition-all ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 focus:border-blue-500' : 'bg-white/5 border-white/10 text-white focus:border-[#D4AF37]'}`} />
-                </div>
-                <div className="space-y-2">
-                  <label className={`text-[10px] font-black uppercase tracking-widest ml-1 ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>E-mail</label>
-                  <input type="email" value={editData.email} onChange={e => setEditData({...editData, email: e.target.value})} className={`w-full border p-4 rounded-xl text-xs font-bold outline-none transition-all ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 focus:border-blue-500' : 'bg-white/5 border-white/10 text-white focus:border-[#D4AF37]'}`} />
-                </div>
-                <button onClick={handleUpdateProfile} className="w-full gradiente-ouro text-black py-4 rounded-xl font-black uppercase text-xs tracking-widest shadow-xl flex items-center justify-center gap-2"><Save size={14} /> Salvar Alterações</button>
-              </div>
-            </div>
-
-            <div className={`p-8 rounded-[2rem] border ${theme === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'cartao-vidro border-white/5'}`}>
-              <h2 className={`text-2xl font-black font-display italic mb-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Envie uma Sugestão</h2>
-              <div className="space-y-4">
-                <textarea rows={6} placeholder="Sua opinião é muito importante para nós..." value={suggestionText} onChange={e => setSuggestionText(e.target.value)} className={`w-full border p-4 rounded-xl text-xs font-medium resize-none outline-none transition-all ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus:border-blue-500' : 'bg-white/5 border-white/10 text-white focus:border-[#D4AF37]'}`} />
-                <button onClick={handleAddSuggestion} className="w-full gradiente-ouro text-black py-4 rounded-xl font-black uppercase text-xs tracking-widest shadow-xl flex items-center justify-center gap-2"><Send size={14} /> Enviar Feedback</button>
-              </div>
-            </div>
-          </div>
-
-          <div className={`p-8 rounded-[2rem] border ${theme === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'cartao-vidro border-white/5'}`}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Meu Histórico</h2>
-              <button onClick={() => { setView('BOOKING'); setPasso(1); }} className="gradiente-ouro text-black px-6 py-3 rounded-2xl font-black text-xs uppercase shadow-lg">Novo Agendamento</button>
-            </div>
-            <div className="space-y-4">
-              {clientAppointments.length === 0 && (
-                <p className={`text-center py-12 text-sm italic ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'}`}>Nenhum agendamento ainda.</p>
-              )}
-              {clientAppointments.map(apt => {
-                const svc = services.find(s => s.id === apt.serviceId);
-                const prof = professionals.find(p => p.id === apt.professionalId);
-                return (
-                  <div key={apt.id} className={`p-6 rounded-2xl border ${theme === 'light' ? 'bg-zinc-50 border-zinc-200' : 'bg-white/5 border-white/5'}`}>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className={`text-lg font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{apt.serviceName}</h3>
-                          <span className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-wider ${apt.status === 'PENDENTE' ? 'bg-yellow-500/10 text-yellow-500' : apt.status === 'CONFIRMADO' ? 'bg-blue-500/10 text-blue-500' : apt.status === 'CONCLUIDO' || apt.status === 'CONCLUIDO_PAGO' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>{apt.status.replace('_', ' ')}</span>
+          <main className="max-w-6xl mx-auto w-full px-6 flex-1 -mt-10 relative z-30 pb-40">
+             {/* 1. Destaques da Casa */}
+             <section className="mb-20 pt-10">
+                <h2 className={`text-2xl font-black font-display italic mb-8 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Destaques da Casa <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
+                <div className="relative group">
+                  <button 
+                    onClick={() => destaqueRef.current?.scrollBy({ left: -300, behavior: 'smooth' })}
+                    className={`hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-xl ${theme === 'light' ? 'bg-white border-2 border-zinc-300 text-zinc-900 hover:bg-zinc-50' : 'bg-black/50 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-black/70'}`}
+                  >
+                    <ChevronLeft size={24} />
+                  </button>
+                  <button 
+                    onClick={() => destaqueRef.current?.scrollBy({ left: 300, behavior: 'smooth' })}
+                    className={`hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-xl ${theme === 'light' ? 'bg-white border-2 border-zinc-300 text-zinc-900 hover:bg-zinc-50' : 'bg-black/50 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-black/70'}`}
+                  >
+                    <ChevronRight size={24} />
+                  </button>
+                  
+                  <div 
+                    ref={destaqueRef}
+                    className="flex gap-4 overflow-x-auto pb-6 snap-x cursor-grab active:cursor-grabbing scrollbar-hide"
+                    style={{ scrollBehavior: 'smooth' }}
+                    onMouseDown={(e) => handleMouseDown(e, destaqueRef)}
+                    onMouseLeave={handleMouseLeave}
+                    onMouseUp={handleMouseUp}
+                    onMouseMove={(e) => handleMouseMove(e, destaqueRef)}
+                  >
+                   {sortedServicesForHighlights.map(svc => (
+                     <div key={svc.id} className={`snap-center flex-shrink-0 w-64 md:w-72 rounded-[2.5rem] overflow-hidden group shadow-2xl transition-all ${theme === 'light' ? 'bg-white border border-zinc-200 hover:border-blue-300' : 'cartao-vidro border-white/5 hover:border-[#D4AF37]/30'}`}>
+                        <div className="h-48 overflow-hidden"><img src={svc.image} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700" alt="" /></div>
+                        <div className="p-6">
+                           <h3 className={`text-xl font-black font-display italic leading-tight ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{svc.name}</h3>
+                           {/* TAMANHO DO PREÇO REDUZIDO EM 20% (xl em vez de 2xl) */}
+                           <p className={`text-xl font-black mt-2 ${theme === 'light' ? 'text-blue-600' : 'text-[#D4AF37]'}`}>R$ {svc.price.toFixed(2)}</p>
+                           <p className={`text-[9px] font-black uppercase ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-500'}`}>{svc.durationMinutes} min</p>
+                           <button onClick={() => handleBookingStart(svc)} className="w-full mt-6 gradiente-ouro text-black py-3 rounded-xl font-black text-[9px] uppercase tracking-widest shadow-xl">RESERVAR</button>
                         </div>
-                        <div className="flex flex-wrap gap-4 text-xs">
-                          <div className={`flex items-center gap-2 ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>
-                            <User size={14} className="text-[#D4AF37]" />
-                            <span className="font-bold">{apt.professionalName}</span>
+                     </div>
+                   ))}
+                </div>
+              </div>
+             </section>
+
+             {/* 2. Nossos Rituais */}
+             <section className="mb-24" id="catalogo">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+                   <h2 className={`text-2xl font-black font-display italic flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Todos os serviços <div className="h-1 w-10 gradiente-ouro opacity-10"></div></h2>
+                </div>
+                <div className="space-y-4">
+                   {categories.filter(cat => cat !== 'Todos').map(cat => {
+                     const categoryServices = services.filter(s => s.category === cat);
+                     const isExpanded = expandedCategories.includes(cat);
+                     
+                     return (
+                       <div key={cat} className={`rounded-2xl overflow-hidden transition-all ${theme === 'light' ? 'bg-white border border-zinc-200' : 'bg-white/5 border border-white/10'}`}>
+                          <button 
+                            onClick={() => toggleCategory(cat)}
+                            className="w-full p-6 flex items-center justify-between hover:bg-white/5 transition-all"
+                          >
+                             <span className={`text-lg font-black ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{cat}</span>
+                             <ChevronRight 
+                               className={`transition-transform ${isExpanded ? 'rotate-90' : ''} ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-400'}`} 
+                               size={20}
+                             />
+                          </button>
+                          
+                          {isExpanded && (
+                            <div className={`border-t animate-in slide-in-from-top-2 ${theme === 'light' ? 'border-zinc-200' : 'border-white/10'}`}>
+                               {categoryServices.map(svc => (
+                                 <div key={svc.id} className={`p-6 border-b last:border-b-0 flex items-center justify-between hover:bg-white/5 transition-all ${theme === 'light' ? 'border-zinc-200' : 'border-white/10'}`}>
+                                    <div className="flex-1">
+                                       <h4 className={`text-base font-bold mb-1 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{svc.name}</h4>
+                                       <p className={`text-xs mb-2 ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-400'}`}>{svc.description}</p>
+                                       <div className="flex items-center gap-4">
+                                          {/* TAMANHO DO PREÇO REDUZIDO EM 20% (xl em vez de 2xl) */}
+                                          <span className={`text-xl font-black ${theme === 'light' ? 'text-blue-600' : 'text-[#B8860B]'}`}>R$ {svc.price.toFixed(2)}</span>
+                                          <span className={`text-xs font-black ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-500'}`}>{svc.durationMinutes} min</span>
+                                       </div>
+                                    </div>
+                                    <button 
+                                      onClick={() => handleBookingStart(svc)} 
+                                      className="ml-4 gradiente-ouro text-black px-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg hover:scale-105 transition-all"
+                                    >
+                                       Agendar
+                                    </button>
+                                 </div>
+                               ))}
+                            </div>
+                          )}
+                       </div>
+                     );
+                   })}
+                </div>
+             </section>
+
+             {/* PLANOS VIP - NOVO */}
+             {config.vipPlans && config.vipPlans.filter(plan => plan.status === 'ATIVO').length > 0 && (
+               <section className="mb-24">
+                  <h2 className={`text-2xl font-black font-display italic mb-10 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Planos VIP Exclusivos <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     {config.vipPlans.filter(plan => plan.status === 'ATIVO').map(plan => (
+                       <div key={plan.id} className={`p-8 rounded-[2.5rem] border relative overflow-hidden transition-all hover:scale-[1.02] ${theme === 'light' ? 'bg-white border-zinc-200 shadow-lg' : 'cartao-vidro border-[#D4AF37]/30'}`}>
+                          <div className="absolute top-4 right-4">
+                             <Crown className="text-[#D4AF37]" size={32} />
                           </div>
-                          <div className={`flex items-center gap-2 ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>
-                            <Calendar size={14} className="text-[#D4AF37]" />
-                            <span className="font-bold">{new Date(apt.date).toLocaleDateString('pt-BR')}</span>
+                          <h3 className={`text-2xl font-black font-display italic mb-2 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{plan.name}</h3>
+                          <div className="flex items-baseline gap-2 mb-6">
+                             <span className={`text-4xl font-black ${theme === 'light' ? 'text-blue-600' : 'text-[#D4AF37]'}`}>R$ {plan.price}</span>
+                             <span className={`text-xs font-black uppercase ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'}`}>/{plan.period === 'MENSAL' ? 'mês' : 'ano'}</span>
+                             {plan.discount && <span className="text-xs font-black text-emerald-500">-{plan.discount}%</span>}
                           </div>
-                          <div className={`flex items-center gap-2 ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>
-                            <Clock size={14} className="text-[#D4AF37]" />
-                            <span className="font-bold">{apt.startTime}</span>
-                          </div>
-                        </div>
+                          <ul className="space-y-3 mb-6">
+                             {plan.benefits.map((benefit, idx) => (
+                               <li key={idx} className={`flex items-start gap-3 text-sm ${theme === 'light' ? 'text-zinc-700' : 'text-zinc-400'}`}>
+                                  <CheckCircle2 size={16} className="text-[#D4AF37] flex-shrink-0 mt-0.5" />
+                                  <span>{benefit}</span>
+                               </li>
+                             ))}
+                          </ul>
+                          <a 
+                            href={`https://wa.me/${config.whatsapp}?text=Olá! Tenho interesse no plano ${encodeURIComponent(plan.name)} - R$ ${plan.price}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block w-full gradiente-ouro text-black py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl text-center hover:scale-105 transition-all"
+                          >
+                             Assinar Plano
+                          </a>
+                       </div>
+                     ))}
+                  </div>
+               </section>
+             )}
+
+             {/* 3. A Experiência Signature */}
+             <section className="mb-24">
+                <h2 className={`text-2xl font-black font-display italic mb-8 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>A Experiência Signature <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
+                <div className="relative group">
+                  <button 
+                    onClick={() => experienciaRef.current?.scrollBy({ left: -500, behavior: 'smooth' })}
+                    className={`hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-xl ${theme === 'light' ? 'bg-white border-2 border-zinc-300 text-zinc-900 hover:bg-zinc-50' : 'bg-black/50 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-black/70'}`}
+                  >
+                    <ChevronLeft size={24} />
+                  </button>
+                  <button 
+                    onClick={() => experienciaRef.current?.scrollBy({ left: 500, behavior: 'smooth' })}
+                    className={`hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-xl ${theme === 'light' ? 'bg-white border-2 border-zinc-300 text-zinc-900 hover:bg-zinc-50' : 'bg-black/50 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-black/70'}`}
+                  >
+                    <ChevronRight size={24} />
+                  </button>
+                  
+                  <div 
+                    ref={experienciaRef}
+                    className="flex gap-4 overflow-x-auto pb-6 snap-x cursor-grab active:cursor-grabbing scrollbar-hide"
+                    style={{ scrollBehavior: 'smooth' }}
+                    onMouseDown={(e) => handleMouseDown(e, experienciaRef)}
+                    onMouseLeave={handleMouseLeave}
+                    onMouseUp={handleMouseUp}
+                    onMouseMove={(e) => handleMouseMove(e, experienciaRef)}
+                  >
+                   {(Array.isArray(config.gallery) ? config.gallery : []).map((img, i) => (
+                     <div key={i} className={`snap-center flex-shrink-0 w-80 md:w-[500px] h-64 md:h-80 rounded-[2.5rem] overflow-hidden shadow-2xl transition-all hover:scale-[1.02] ${theme === 'light' ? 'border-4 border-zinc-200' : 'border-4 border-white/5'}`}>
+                        <img src={img} className="w-full h-full object-cover" alt="" />
+                     </div>
+                   ))}
+                   {(!config.gallery || config.gallery.length === 0) && <p className={`italic py-10 ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'}`}>Em breve, novas fotos do nosso ambiente.</p>}
+                </div>
+              </div>
+             </section>
+
+             {/* 4. Voz dos Membros */}
+             <section className="mb-24 py-10 -mx-6 px-6 bg-black">
+                <h2 className={`text-2xl font-black font-display italic mb-10 flex items-center gap-6 text-white`}>Voz dos Membros <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
+                <div className="relative group">
+                  <button 
+                    onClick={() => membroRef.current?.scrollBy({ left: -400, behavior: 'smooth' })}
+                    className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-all shadow-xl"
+                  >
+                    <ChevronLeft size={24} />
+                  </button>
+                  <button 
+                    onClick={() => membroRef.current?.scrollBy({ left: 400, behavior: 'smooth' })}
+                    className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-all shadow-xl"
+                  >
+                    <ChevronRight size={24} />
+                  </button>
+                  
+                  <div 
+                    ref={membroRef}
+                    className="flex gap-6 overflow-x-auto pb-6 snap-x cursor-grab active:cursor-grabbing scrollbar-hide"
+                    style={{ scrollBehavior: 'smooth' }}
+                    onMouseDown={(e) => handleMouseDown(e, membroRef)}
+                    onMouseLeave={handleMouseLeave}
+                    onMouseUp={handleMouseUp}
+                    onMouseMove={(e) => handleMouseMove(e, membroRef)}
+                  >
+                   {config.reviews?.length === 0 && <p className={`italic py-10 text-center w-full text-zinc-500`}>Aguardando seu feedback para brilhar aqui.</p>}
+                   {config.reviews?.map((rev, i) => (
+                      <div key={i} className={`snap-center flex-shrink-0 w-80 p-8 rounded-[2rem] relative group cartao-vidro border-white/5`}>
+                         <div className="absolute -top-4 -left-4 w-10 h-10 gradiente-ouro rounded-full flex items-center justify-center text-black shadow-lg"><Quote size={18} fill="currentColor"/></div>
+                         <div className="flex gap-1 mb-4">
+                            {[1,2,3,4,5].map(s => (
+                               <Star key={s} size={14} fill={s <= rev.rating ? '#D4AF37' : 'none'} className={s <= rev.rating ? 'text-[#D4AF37]' : 'text-zinc-800'}/>
+                            ))}
+                         </div>
+                         <p className={`text-sm italic leading-relaxed mb-6 text-zinc-300`}>"{rev.comment}"</p>
+                         <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-[#D4AF37]/20 flex items-center justify-center">
+                               <User size={18} className="text-[#D4AF37]"/>
+                            </div>
+                            <p className={`text-[10px] font-black text-white`}>{rev.userName}</p>
+                         </div>
                       </div>
-                      <span className="text-2xl font-black text-[#D4AF37] ml-4">R$ {apt.price}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (view === 'HOME') {
-    const servicosAgrupados = services.reduce((acc, svc) => {
-      if (!acc[svc.category]) acc[svc.category] = [];
-      acc[svc.category].push(svc);
-      return acc;
-    }, {} as Record<string, Service[]>);
-
-    return (
-      <div className={`min-h-screen ${theme === 'light' ? 'bg-[#F8F9FA]' : 'bg-[#050505]'}`}>
-        <div className="relative h-screen overflow-hidden">
-          <img src={config.coverImage} className={`absolute inset-0 w-full h-full object-cover grayscale transition-all ${theme === 'light' ? 'opacity-10' : 'opacity-30'}`} alt="Barbearia" />
-          <div className={`absolute inset-0 bg-gradient-to-b ${theme === 'light' ? 'from-transparent via-[#F8F9FA]/80 to-[#F8F9FA]' : 'from-transparent via-[#050505]/80 to-[#050505]'}`}></div>
-
-          <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 h-full flex flex-col justify-center items-start py-24">
-            <div className="space-y-8 max-w-2xl">
-              <div className="w-24 h-24 rounded-3xl overflow-hidden border-2 border-[#D4AF37] shadow-2xl shadow-[#D4AF37]/30">
-                <img src={config.logo} className="w-full h-full object-cover" alt="Logo" />
-              </div>
-
-              <div className="space-y-6">
-                <h1 className={`text-5xl md:text-7xl font-black font-display italic tracking-tighter leading-none ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{config.name}</h1>
-                <p className={`text-lg md:text-xl leading-relaxed max-w-xl ${theme === 'light' ? 'text-zinc-700' : 'text-zinc-400'}`}>{config.description}</p>
-              </div>
-
-              <div className="flex flex-wrap gap-4">
-                <button onClick={() => { setView('BOOKING'); setPasso(1); }} className="gradiente-ouro text-black px-10 py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-2xl hover:scale-105 active:scale-95 transition-all">Agendar Ritual</button>
-                <button onClick={() => setShowReviewModal(true)} className={`px-10 py-5 rounded-[2rem] border font-black uppercase tracking-widest text-xs transition-all ${theme === 'light' ? 'bg-white border-zinc-200 text-zinc-700 hover:border-blue-400 shadow-lg' : 'bg-white/5 border-white/10 text-white hover:border-[#D4AF37]'}`}>Avaliar</button>
-                {loggedClient ? (
-                  <button onClick={() => setView('CLIENT_DASHBOARD')} className={`px-10 py-5 rounded-[2rem] border font-black uppercase tracking-widest text-xs transition-all ${theme === 'light' ? 'bg-white border-zinc-200 text-zinc-700 hover:border-blue-400 shadow-lg' : 'bg-white/5 border-white/10 text-white hover:border-[#D4AF37]'}`}>Meu Portal</button>
-                ) : (
-                  <button onClick={() => setView('LOGIN')} className={`px-10 py-5 rounded-[2rem] border font-black uppercase tracking-widest text-xs transition-all ${theme === 'light' ? 'bg-white border-zinc-200 text-zinc-700 hover:border-blue-400 shadow-lg' : 'bg-white/5 border-white/10 text-white hover:border-[#D4AF37]'}`}><Lock size={14} className="inline mr-2" />Login Membro</button>
-                )}
-              </div>
-
-              <div className="flex items-center gap-6 pt-6">
-                <a href={`https://instagram.com/${config.instagram?.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-colors ${theme === 'light' ? 'text-zinc-600 hover:text-zinc-900' : 'text-zinc-500 hover:text-[#D4AF37]'}`}><Instagram size={18} /> {config.instagram}</a>
-                <a href={`https://wa.me/${config.whatsapp}`} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-colors ${theme === 'light' ? 'text-zinc-600 hover:text-zinc-900' : 'text-zinc-500 hover:text-[#D4AF37]'}`}><Phone size={18} /> WhatsApp</a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="relative bg-[#D4AF37] py-24 overflow-hidden">
-          <div className="absolute inset-0 opacity-10"><div className="absolute inset-0 bg-[radial-gradient(circle,black_1px,transparent_1px)] bg-[length:24px_24px]"></div></div>
-          <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
-            <div className="flex items-center justify-between mb-12">
-              <h2 className="text-4xl font-black font-display italic text-black">Rituais em Destaque</h2>
-            </div>
-            <div ref={destaqueRef} onMouseDown={(e) => handleMouseDown(e, destaqueRef)} onMouseLeave={handleMouseLeave} onMouseUp={handleMouseUp} onMouseMove={(e) => handleMouseMove(e, destaqueRef)} className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide cursor-grab active:cursor-grabbing select-none">
-              {sortedServicesForHighlights.slice(0, 6).map(svc => (
-                <div key={svc.id} onClick={() => handleBookingStart(svc)} className="min-w-[280px] md:min-w-[320px] p-8 bg-black rounded-[2rem] cursor-pointer hover:scale-105 transition-all shadow-2xl group">
-                  <div className="w-full h-40 rounded-2xl overflow-hidden mb-6 bg-zinc-900">
-                    <img src={svc.image} className="w-full h-full object-cover group-hover:scale-110 transition-all" alt={svc.name} />
-                  </div>
-                  <h3 className="text-2xl font-black font-display italic text-white mb-2">{svc.name}</h3>
-                  <p className="text-xs text-zinc-400 mb-4 line-clamp-2">{svc.description}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-3xl font-black text-[#D4AF37]">R$ {svc.price}</span>
-                    <span className="text-xs font-black uppercase text-zinc-500">{svc.durationMinutes} min</span>
-                  </div>
+                   ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
+              </div>
+             </section>
 
-        <div className={`py-24 ${theme === 'light' ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
-          <div className="max-w-7xl mx-auto px-6 md:px-12">
-            <div className="flex items-center justify-between mb-12">
-              <h2 className={`text-4xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Experiências dos Membros</h2>
-            </div>
-            <div ref={experienciaRef} onMouseDown={(e) => handleMouseDown(e, experienciaRef)} onMouseLeave={handleMouseLeave} onMouseUp={handleMouseUp} onMouseMove={(e) => handleMouseMove(e, experienciaRef)} className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide cursor-grab active:cursor-grabbing select-none">
-              {config.reviews && config.reviews.slice(0, 8).map((rev, idx) => (
-                <div key={idx} className={`min-w-[320px] md:min-w-[400px] p-8 rounded-[2rem] border ${theme === 'light' ? 'bg-zinc-50 border-zinc-200' : 'bg-white/5 border-white/10'}`}>
-                  <div className="flex items-center gap-1 mb-4">{Array.from({length: 5}).map((_, i) => <Star key={i} size={16} className={i < rev.rating ? 'text-[#D4AF37] fill-[#D4AF37]' : theme === 'light' ? 'text-zinc-300' : 'text-zinc-700'} />)}</div>
-                  <p className={`text-sm leading-relaxed mb-6 italic ${theme === 'light' ? 'text-zinc-700' : 'text-zinc-400'}`}>"{rev.comment}"</p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#D4AF37] rounded-full flex items-center justify-center font-black text-black text-sm">{rev.userName.charAt(0)}</div>
-                    <div>
-                      <p className={`text-xs font-black ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{rev.userName}</p>
-                      <p className={`text-[10px] font-bold uppercase tracking-widest ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'}`}>Membro</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className={`py-24 ${theme === 'light' ? 'bg-[#F8F9FA]' : 'bg-[#050505]'}`}>
-          <div className="max-w-7xl mx-auto px-6 md:px-12">
-            <div className="mb-12 text-center max-w-3xl mx-auto">
-              <h2 className={`text-4xl md:text-5xl font-black font-display italic mb-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Mestres da Arte</h2>
-              <p className={`text-sm ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>Profissionais dedicados à excelência em cada corte, barba e ritual de cuidado masculino.</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {professionals.map(prof => (
-                <div key={prof.id} className={`rounded-[2rem] overflow-hidden border transition-all hover:border-[#D4AF37]/50 group cursor-pointer ${theme === 'light' ? 'bg-white border-zinc-200 shadow-lg' : 'bg-white/5 border-white/5'}`}>
-                  <div className="relative h-80 overflow-hidden bg-zinc-900" onClick={() => handleProfessionalClick(prof)}>
-                    <img src={prof.avatar} className="w-full h-full object-contain group-hover:scale-105 transition-all" alt={prof.name} />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                    <div className="absolute bottom-6 left-6 right-6">
-                      <h3 className="text-3xl font-black font-display italic text-white mb-2">{prof.name}</h3>
-                      <p className="text-xs font-black uppercase tracking-widest text-zinc-400">Mestre Barbeiro</p>
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className={`flex items-center gap-2 ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>
-                        <Clock size={14} className="text-[#D4AF37]" />
-                        <span className="text-xs font-black">{prof.workingHours.start} - {prof.workingHours.end}</span>
+             {/* 5. Nossos Artífices */}
+             <section className="mb-24">
+                <h2 className={`text-2xl font-black font-display italic mb-10 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Nossos Artífices <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                   {professionals.map(prof => (
+                      <div key={prof.id} className={`rounded-[2rem] p-6 text-center space-y-4 group transition-all hover:scale-105 ${theme === 'light' ? 'bg-white border border-zinc-200 hover:border-blue-300' : 'cartao-vidro border-white/5 hover:border-[#D4AF37]/30'}`}>
+                         <div className="relative mx-auto w-24 h-24 flex items-center justify-center">
+                            <img 
+                              src={prof.avatar} 
+                              className="w-full h-full rounded-2xl object-cover border-2 border-[#D4AF37] cursor-pointer" 
+                              alt="" 
+                              onClick={() => { setSelectedProfessional(prof); setShowProfessionalModal(true); }}
+                            />
+                            <div className="absolute -right-10 top-1 text-red-500 text-xs font-black flex items-center gap-0.5 whitespace-nowrap">
+                               <Heart size={12} fill="currentColor" /> <span className="text-red-500">{prof.likes || 0}</span>
+                            </div>
+                         </div>
+                         <div>
+                            <p className={`font-black text-sm ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{prof.name}</p>
+                            <p className={`text-[8px] uppercase tracking-widest font-black mt-1 ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'}`}>{prof.specialty}</p>
+                         </div>
                       </div>
-                      <button onClick={() => likeProfessional(prof.id)} className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${theme === 'light' ? 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700' : 'bg-white/5 hover:bg-white/10 text-zinc-400'}`}>
-                        <Heart size={14} className="text-[#D4AF37]" fill="currentColor" />
-                        <span className="text-xs font-black">{prof.likes || 0}</span>
-                      </button>
-                    </div>
-                  </div>
+                   ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
+             </section>
 
-        <div className={`py-24 ${theme === 'light' ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
-          <div className="max-w-4xl mx-auto px-6 md:px-12 text-center">
-            <h2 className={`text-4xl md:text-5xl font-black font-display italic mb-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{config.aboutTitle || 'Nossa História'}</h2>
-            <p className={`text-lg leading-relaxed mb-12 ${theme === 'light' ? 'text-zinc-700' : 'text-zinc-400'}`}>{config.aboutText || 'Tradição e excelência desde 1995.'}</p>
-            <div className={`p-12 rounded-[3rem] border ${theme === 'light' ? 'bg-zinc-50 border-zinc-200' : 'bg-white/5 border-white/10'}`}>
-              <MapPin className="w-12 h-12 text-[#D4AF37] mx-auto mb-6" />
-              <h3 className={`text-2xl font-black font-display italic mb-4 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Venha nos Visitar</h3>
-              <p className={`text-sm mb-2 ${theme === 'light' ? 'text-zinc-700' : 'text-zinc-400'}`}>{config.address}</p>
-              <p className={`text-sm mb-6 ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>{config.city}, {config.state}</p>
-              <a href={config.locationUrl} target="_blank" rel="noopener noreferrer" className="inline-block gradiente-ouro text-black px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl">Ver no Mapa</a>
-            </div>
-          </div>
-        </div>
-
-        <footer className={`py-16 border-t ${theme === 'light' ? 'bg-zinc-50 border-zinc-200' : 'bg-[#0A0A0A] border-white/5'}`}>
-          <div className="max-w-7xl mx-auto px-6 md:px-12">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/10">
-                  <img src={config.logo} className="w-full h-full object-cover" alt="Logo" />
+             {/* 6. Onde Nos Encontrar */}
+             <section className="mb-24">
+                <h2 className={`text-2xl font-black font-display italic mb-10 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Onde Nos Encontrar <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
+                <div className={`rounded-[2.5rem] overflow-hidden shadow-2xl ${theme === 'light' ? 'border border-zinc-200' : 'border border-white/5'}`}>
+                   <div className="h-48 bg-zinc-900 flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-90 transition-all" onClick={() => config.locationUrl && window.open(config.locationUrl, '_blank')}>
+                      {config.locationImage ? (
+                        <img src={config.locationImage} className="w-full h-full object-cover" alt="Nossa localização" />
+                      ) : (
+                        <MapPin className="text-[#D4AF37]" size={48}/>
+                      )}
+                   </div>
+                   <div className={`p-8 ${theme === 'light' ? 'bg-white' : 'bg-white/5'}`}>
+                      <p className={`text-sm font-bold mb-2 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{config.address}</p>
+                      <p className={`text-xs ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>{config.phone}</p>
+                   </div>
                 </div>
-                <div>
-                  <p className={`font-black ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{config.name}</p>
-                  <p className={`text-xs ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'}`}>© 2024 Todos os direitos reservados.</p>
+             </section>
+
+             {/* 7. Redes Sociais */}
+             <section className="mb-20 text-center">
+                <h2 className={`text-2xl font-black font-display italic mb-10 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Conecte-se Conosco</h2>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                   <a href="https://www.instagram.com/srjosebarberpub/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-10 py-4 rounded-full font-black text-xs uppercase shadow-2xl hover:scale-105 transition-all">
+                      <Instagram size={20}/> Siga no Instagram
+                   </a>
+                   <a href="https://wa.me/5521964340031" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-3 bg-gradient-to-r from-green-600 to-green-500 text-white px-10 py-4 rounded-full font-black text-xs uppercase shadow-2xl hover:scale-105 transition-all">
+                      <Phone size={20}/> Fale no WhatsApp
+                   </a>
                 </div>
-              </div>
-              <div className="flex items-center gap-6">
-                <a href={`https://instagram.com/${config.instagram?.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className={`transition-colors ${theme === 'light' ? 'text-zinc-600 hover:text-zinc-900' : 'text-zinc-500 hover:text-[#D4AF37]'}`}><Instagram size={20} /></a>
-                <a href={`https://wa.me/${config.whatsapp}`} target="_blank" rel="noopener noreferrer" className={`transition-colors ${theme === 'light' ? 'text-zinc-600 hover:text-zinc-900' : 'text-zinc-500 hover:text-[#D4AF37]'}`}><Phone size={20} /></a>
-                <a href={`mailto:${config.email}`} className={`transition-colors ${theme === 'light' ? 'text-zinc-600 hover:text-zinc-900' : 'text-zinc-500 hover:text-[#D4AF37]'}`}><Mail size={20} /></a>
-              </div>
-            </div>
-          </div>
-        </footer>
-      </div>
-    );
-  }
+             </section>
 
-  if (view === 'LOGIN') {
-    return (
-      <div className={`min-h-screen flex items-center justify-center p-6 ${theme === 'light' ? 'bg-[#F8F9FA]' : 'bg-[#050505]'}`}>
-        <div className={`w-full max-w-md rounded-[3rem] p-12 space-y-10 shadow-2xl border ${theme === 'light' ? 'bg-white border-zinc-200' : 'cartao-vidro border-[#D4AF37]/30'}`}>
-          <button onClick={() => setView('HOME')} className={`flex items-center gap-2 text-sm font-black uppercase tracking-widest transition-colors ${theme === 'light' ? 'text-zinc-600 hover:text-zinc-900' : 'text-zinc-500 hover:text-white'}`}>
-            <ChevronLeft size={20}/> Voltar
-          </button>
-          
-          <div className="text-center space-y-6">
-            <div className="w-24 h-24 rounded-3xl mx-auto overflow-hidden border-2 border-[#D4AF37]/30 shadow-2xl shadow-[#D4AF37]/20">
-              <img src={config.logo} className="w-full h-full object-cover" alt="Logo" />
-            </div>
-            <div>
-              <h1 className={`text-4xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Portal do Membro</h1>
-              <p className={`text-[10px] font-black uppercase tracking-[0.3em] mt-2 ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'}`}>Acesse sua área exclusiva</p>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <label className={`text-[10px] font-black uppercase tracking-widest ml-2 ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>E-mail ou WhatsApp</label>
-              <input type="text" placeholder="seuemail@gmail.com ou (21)..." value={loginIdentifier} onChange={e => setLoginIdentifier(e.target.value)} className={`w-full border p-5 rounded-2xl outline-none transition-all font-bold ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus:border-blue-500' : 'bg-white/5 border-white/10 text-white focus:border-[#D4AF37]'}`} />
-            </div>
-            <div className="space-y-2">
-              <label className={`text-[10px] font-black uppercase tracking-widest ml-2 ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>Senha</label>
-              <input type="password" placeholder="••••••" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} className={`w-full border p-5 rounded-2xl outline-none transition-all font-bold ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus:border-blue-500' : 'bg-white/5 border-white/10 text-white focus:border-[#D4AF37]'}`} />
-            </div>
-            <button onClick={handleClientLogin} className="w-full gradiente-ouro text-black py-6 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-2xl">Acessar Portal</button>
-          </div>
-
-          <p className={`text-center text-xs ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>Ainda não tem conta? Faça seu primeiro agendamento para se cadastrar.</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (view === 'BOOKING') {
-    const selectedService = services.find(s => s.id === selecao.serviceId);
-    const selectedProf = professionals.find(p => p.id === selecao.professionalId);
-
-    if (success) {
-      return (
-        <div className={`min-h-screen flex items-center justify-center p-6 ${theme === 'light' ? 'bg-[#F8F9FA]' : 'bg-[#050505]'}`}>
-          <div className="text-center space-y-8 animate-in fade-in zoom-in-95">
-            <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center mx-auto">
-              <Check size={48} className="text-white"/>
-            </div>
-            <div>
-              <h2 className={`text-4xl font-black font-display italic mb-4 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>
-                Agendamento Confirmado!
-              </h2>
-              <p className={`text-sm ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-400'}`}>
-                Seu ritual foi agendado com sucesso. Até breve!
-              </p>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    const servicosAgrupados = services.reduce((acc, svc) => {
-      if (!acc[svc.category]) acc[svc.category] = [];
-      acc[svc.category].push(svc);
-      return acc;
-    }, {} as Record<string, Service[]>);
-
-    return (
-      <div className={`min-h-screen ${theme === 'light' ? 'bg-[#F8F9FA]' : 'bg-[#050505]'}`}>
-        <div className="max-w-4xl mx-auto p-6 md:p-12">
-          <button onClick={() => { setView('HOME'); setPasso(1); }} className={`flex items-center gap-2 mb-8 text-sm font-black uppercase tracking-widest transition-colors ${theme === 'light' ? 'text-zinc-600 hover:text-zinc-900' : 'text-zinc-500 hover:text-white'}`}>
-            <ChevronLeft size={20}/> Voltar
-          </button>
-
-          <div className={`rounded-[3rem] p-8 md:p-12 border ${theme === 'light' ? 'bg-white border-zinc-200 shadow-xl' : 'bg-[#0F0F0F] border-white/5'}`}>
-            <div className="mb-12">
-              <h1 className={`text-3xl md:text-5xl font-black font-display italic mb-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>
-                {passo === 1 && 'Escolha seu Ritual'}
-                {passo === 2 && 'Escolha seu Mestre'}
-                {passo === 3 && 'Data e Horário'}
-                {passo === 4 && 'Confirmação'}
-              </h1>
-              
-              <div className="flex gap-2">
-                {[1,2,3,4].map(step => (
-                  <div key={step} className={`h-2 flex-1 rounded-full transition-all ${step <= passo ? 'bg-[#D4AF37]' : theme === 'light' ? 'bg-zinc-200' : 'bg-white/10'}`}/>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-8">
-              {passo === 1 && (
-                <div className="space-y-6">
-                  {Object.entries(servicosAgrupados).map(([categoria, svcs]) => (
-                    <div key={categoria}>
-                      <button onClick={() => toggleCategory(categoria)} className={`w-full flex items-center justify-between p-4 rounded-2xl border mb-4 transition-all ${expandedCategories.includes(categoria) ? 'bg-[#D4AF37] text-black border-transparent' : theme === 'light' ? 'bg-zinc-50 border-zinc-200 text-zinc-700' : 'bg-white/5 border-white/10 text-white'}`}>
-                        <span className="font-black uppercase text-xs tracking-widest">{categoria}</span>
-                        <ChevronRight className={`transition-transform ${expandedCategories.includes(categoria) ? 'rotate-90' : ''}`}/>
-                      </button>
-                      
-                      {expandedCategories.includes(categoria) && (
-                        <div className="grid gap-4 animate-in slide-in-from-top-2">
-                          {svcs.map(svc => (
-                            <button key={svc.id} onClick={() => { setSelecao({...selecao, serviceId: svc.id}); setPasso(2); }} className={`p-6 rounded-2xl border text-left transition-all hover:border-[#D4AF37]/50 ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-white/5 border-white/5'}`}>
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <h3 className={`text-lg font-black font-display italic mb-1 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{svc.name}</h3>
-                                  <p className={`text-xs mb-3 ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>{svc.description}</p>
-                                  <div className="flex items-center gap-4">
-                                    <span className="text-lg font-black text-[#D4AF37]">R$ {svc.price}</span>
-                                    <span className={`text-xs font-black uppercase ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'}`}>{svc.durationMinutes} min</span>
-                                  </div>
-                                </div>
-                                <ArrowRight className={theme === 'light' ? 'text-zinc-400' : 'text-zinc-600'}/>
-                              </div>
-                            </button>
-                          ))}
+             {/* 8. Quem Somos */}
+             <section className="mb-24">
+                <h2 className={`text-2xl font-black font-display italic mb-10 flex items-center gap-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{config.aboutTitle || 'Quem Somos'} <div className="h-1 flex-1 gradiente-ouro opacity-10"></div></h2>
+                <div className={`rounded-[2.5rem] p-8 md:p-12 ${theme === 'light' ? 'bg-white border border-zinc-200' : 'cartao-vidro border-white/5'}`}>
+                   <div className="grid md:grid-cols-2 gap-8 items-center">
+                      {config.aboutImage && (
+                        <div className="h-64 md:h-80 rounded-2xl overflow-hidden">
+                           <img src={config.aboutImage} className="w-full h-full object-cover" alt="Sobre nós" />
                         </div>
                       )}
-                    </div>
-                  ))}
+                      <p className={`text-base leading-relaxed ${theme === 'light' ? 'text-zinc-700' : 'text-zinc-300'}`}>
+                         {config.aboutText || 'Tradição, estilo e excelência em cada serviço. Nossa barbearia é mais que um lugar para cortar cabelo - é um espaço de encontro, cultura e cuidado pessoal.'}
+                      </p>
+                   </div>
                 </div>
-              )}
+             </section>
+          </main>
 
-              {passo === 2 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in slide-in-from-right-2">
-                  {professionals.map(prof => (
-                    <button key={prof.id} onClick={() => { setSelecao({...selecao, professionalId: prof.id}); setPasso(3); }} className={`p-6 rounded-2xl border text-left transition-all hover:border-[#D4AF37]/50 ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-white/5 border-white/5'}`}>
-                      <div className="flex items-center gap-4 mb-4">
-                        <img src={prof.avatar} className="w-16 h-16 rounded-xl object-cover border-2 border-white/10" alt={prof.name}/>
-                        <div>
-                          <h3 className={`font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{prof.name}</h3>
-                          <p className={`text-xs font-black uppercase tracking-widest ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-500'}`}>Mestre</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Clock size={14} className="text-[#D4AF37]"/>
-                          <span className={`text-xs font-black ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>{prof.workingHours.start} - {prof.workingHours.end}</span>
-                        </div>
-                        <ArrowRight className={theme === 'light' ? 'text-zinc-400' : 'text-zinc-600'}/>
-                      </div>
+          <footer className={`py-10 text-center border-t ${theme === 'light' ? 'border-zinc-200 bg-zinc-50 text-zinc-600' : 'border-white/5 bg-white/[0.01] text-zinc-600'}`}>
+             <p className="text-[10px] font-black uppercase tracking-widest">© 2025 {config.name}. PRODUZIDO POR ©NIKLAUS. Todos os direitos reservados.</p>
+          </footer>
+        </div>
+      )}
+
+      {view === 'LOGIN' && (
+        <div className="flex-1 flex items-center justify-center p-6 animate-in fade-in zoom-in">
+           <div className={`w-full max-w-md rounded-[3rem] p-12 space-y-10 shadow-2xl ${theme === 'light' ? 'bg-white border border-zinc-200' : 'cartao-vidro border-[#D4AF37]/20'}`}>
+              <div className="text-center space-y-4">
+                 <div className="w-16 h-16 rounded-2xl gradiente-ouro p-1 mx-auto"><div className="w-full h-full rounded-[1.8rem] bg-black overflow-hidden flex items-center justify-center"><Lock className="text-[#D4AF37]" size={24}/></div></div>
+                 <h2 className={`text-3xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Portal do Membro</h2>
+                 <p className={`text-[10px] uppercase tracking-widest font-black ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>Acesse com seu e-mail ou celular</p>
+              </div>
+              <div className="space-y-6">
+                 <input type="text" placeholder="E-mail ou WhatsApp" value={loginIdentifier} onChange={e => setLoginIdentifier(e.target.value)} className={`w-full border p-5 rounded-2xl outline-none font-bold transition-all ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus:border-blue-500' : 'bg-white/5 border-white/10 text-white focus:border-[#D4AF37]'}`} />
+                 <input type="password" placeholder="Senha" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} className={`w-full border p-5 rounded-2xl outline-none font-bold transition-all ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus:border-blue-500' : 'bg-white/5 border-white/10 text-white focus:border-[#D4AF37]'}`} />
+                 <button onClick={handleLoginPortal} className="w-full gradiente-ouro text-black py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-2xl hover:scale-105 transition-all">ACESSAR PORTAL</button>
+              </div>
+              <button onClick={() => setView('HOME')} className={`w-full text-[10px] font-black uppercase tracking-widest transition-all ${theme === 'light' ? 'text-zinc-600 hover:text-zinc-900' : 'text-zinc-600 hover:text-[#D4AF37]'}`}>Voltar ao Início</button>
+           </div>
+        </div>
+      )}
+
+      {view === 'CLIENT_DASHBOARD' && loggedClient && (
+        <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full p-6 pb-20 animate-in fade-in">
+           <div className="flex items-center justify-between mb-10">
+              <h1 className={`text-3xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Meu Portal</h1>
+              <button onClick={handleLogout} className={`flex items-center gap-2 px-6 py-3 rounded-xl border transition-all ${theme === 'light' ? 'bg-white border-zinc-300 text-zinc-700 hover:bg-zinc-50' : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'}`}>
+                 <LogOut size={16}/> Sair
+              </button>
+           </div>
+
+           <div className="grid md:grid-cols-3 gap-6 mb-10">
+              <div className={`md:col-span-1 rounded-[2rem] p-8 text-center space-y-6 ${theme === 'light' ? 'bg-white border border-zinc-200' : 'cartao-vidro border-white/5'}`}>
+                 <div className="relative inline-block">
+                    <img src={loggedClient.avatar || 'https://via.placeholder.com/120'} className="w-28 h-28 rounded-3xl object-cover border-4 border-[#D4AF37]" alt="" />
+                    <label className="absolute -bottom-2 -right-2 bg-[#D4AF37] text-black p-2 rounded-xl cursor-pointer hover:scale-110 transition-all shadow-lg">
+                       <Upload size={14}/>
+                       <input type="file" accept="image/*" onChange={handleUpdateProfilePhoto} className="hidden"/>
+                    </label>
+                 </div>
+                 <div>
+                    <p className={`text-xl font-black font-display ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{loggedClient.name}</p>
+                    <p className={`text-[9px] uppercase tracking-widest font-black mt-2 ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>Membro Exclusivo</p>
+                 </div>
+                 <div className={`space-y-2 text-left ${theme === 'light' ? 'text-zinc-700' : 'text-zinc-400'}`}>
+                    <p className="text-xs flex items-center gap-2"><Phone size={12} className="text-[#D4AF37]"/> {loggedClient.phone}</p>
+                    <p className="text-xs flex items-center gap-2"><Mail size={12} className="text-[#D4AF37]"/> {loggedClient.email}</p>
+                 </div>
+              </div>
+
+              <div className="md:col-span-2 space-y-6">
+                 <div className={`rounded-[2rem] p-8 ${theme === 'light' ? 'bg-white border border-zinc-200' : 'cartao-vidro border-white/5'}`}>
+                    <h3 className={`text-lg font-black font-display italic mb-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Enviar Sugestão</h3>
+                    <textarea rows={4} placeholder="Conte-nos suas ideias..." value={suggestionText} onChange={e => setSuggestionText(e.target.value)} className={`w-full border p-4 rounded-xl outline-none text-sm ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus:border-blue-500' : 'bg-white/5 border-white/10 text-white focus:border-[#D4AF37]'}`}/>
+                    <button onClick={handleSendSuggestion} disabled={loading} className="mt-4 w-full gradiente-ouro text-black py-4 rounded-xl font-black uppercase text-[10px] shadow-xl">
+                       {loading ? 'Enviando...' : <><Send size={14} className="inline mr-2"/> Enviar Sugestão</>}
                     </button>
-                  ))}
+                 </div>
+
+                 <div className={`rounded-[2rem] p-8 ${theme === 'light' ? 'bg-white border border-zinc-200' : 'cartao-vidro border-white/5'}`}>
+                    <h3 className={`text-lg font-black font-display italic mb-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Minhas Sugestões e Respostas</h3>
+                    <div className="space-y-4 max-h-80 overflow-y-auto scrollbar-hide">
+                       {suggestions.filter(s => s.clientPhone === loggedClient.phone).length === 0 && (
+                          <p className={`text-center py-6 italic text-sm ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'}`}>Nenhuma sugestão enviada ainda.</p>
+                       )}
+                       {suggestions.filter(s => s.clientPhone === loggedClient.phone).map(sugg => (
+                          <div key={sugg.id} className={`p-4 rounded-xl border ${theme === 'light' ? 'bg-zinc-50 border-zinc-200' : 'bg-white/5 border-white/10'}`}>
+                             <div className="flex items-start gap-3 mb-2">
+                                <MessageSquare size={16} className="text-[#D4AF37] flex-shrink-0 mt-1" />
+                                <div className="flex-1">
+                                   <p className={`text-xs font-bold mb-1 ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>Enviado em {sugg.date}</p>
+                                   <p className={`text-sm ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{sugg.message}</p>
+                                </div>
+                             </div>
+                             {sugg.response && (
+                                <div className={`mt-3 pt-3 border-t ${theme === 'light' ? 'border-zinc-200' : 'border-white/10'}`}>
+                                   <div className="flex items-start gap-2">
+                                      <div className="w-6 h-6 rounded-full bg-[#D4AF37] flex items-center justify-center flex-shrink-0">
+                                         <Check size={12} className="text-black" />
+                                      </div>
+                                      <div>
+                                         <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>Resposta do Administrador:</p>
+                                         <p className={`text-sm ${theme === 'light' ? 'text-zinc-700' : 'text-zinc-300'}`}>{sugg.response}</p>
+                                      </div>
+                                   </div>
+                                </div>
+                             )}
+                             {!sugg.response && (
+                                <p className={`text-xs italic mt-2 ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'}`}>Aguardando resposta...</p>
+                             )}
+                          </div>
+                       ))}
+                    </div>
+                 </div>
+
+                 <div className={`rounded-[2rem] p-8 ${theme === 'light' ? 'bg-white border border-zinc-200' : 'cartao-vidro border-white/5'}`}>
+                    <h3 className={`text-lg font-black font-display italic mb-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Avaliar Experiência</h3>
+                    <button onClick={() => setShowReviewModal(true)} className="w-full gradiente-ouro text-black py-4 rounded-xl font-black uppercase text-[10px] shadow-xl">
+                       <Star size={14} className="inline mr-2"/> Deixar Avaliação
+                    </button>
+                 </div>
+              </div>
+           </div>
+
+           <div className={`rounded-[2rem] p-8 mb-10 ${theme === 'light' ? 'bg-white border border-zinc-200' : 'cartao-vidro border-white/5'}`}>
+              <h3 className={`text-lg font-black font-display italic mb-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Nossos Barbeiros</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                 {professionals.map(prof => {
+                    const isLiked = loggedClient.likedProfessionals?.includes(prof.id);
+                    return (
+                      <div key={prof.id} className={`rounded-2xl p-4 text-center space-y-3 transition-all ${theme === 'light' ? 'bg-zinc-50 border border-zinc-200' : 'bg-white/5 border border-white/10'}`}>
+                         <div className="relative mx-auto w-20 h-20 flex items-center justify-center">
+                            <img 
+                              src={prof.avatar} 
+                              className="w-full h-full rounded-xl object-cover border-2 border-[#B8860B] cursor-pointer" 
+                              alt="" 
+                              onClick={() => { setSelectedProfessional(prof); setShowProfessionalModal(true); }}
+                            />
+                            <div className="absolute -right-8 top-0.5 text-red-500 text-[8px] font-black flex items-center gap-0.5 whitespace-nowrap">
+                               <Heart size={8} fill="currentColor"/> <span className="text-red-500">{prof.likes || 0}</span>
+                            </div>
+                         </div>
+                         <div>
+                            <p className={`font-bold text-sm ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{prof.name}</p>
+                            <p className={`text-[8px] uppercase tracking-widest font-black mt-1 ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'}`}>{prof.specialty}</p>
+                         </div>
+                         <button 
+                           onClick={() => handleLikeProfessional(prof.id)} 
+                           disabled={isLiked}
+                           className={`w-full py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
+                             isLiked 
+                               ? 'bg-emerald-500 text-white cursor-not-allowed' 
+                               : 'gradiente-ouro text-black hover:scale-105'
+                           }`}
+                         >
+                            {isLiked ? (
+                              <><Check size={10} className="inline mr-1"/> Curtido</>
+                            ) : (
+                              <><Heart size={10} className="inline mr-1"/> Curtir</>
+                            )}
+                         </button>
+                      </div>
+                    );
+                 })}
+              </div>
+           </div>
+
+           <div className={`rounded-[2rem] p-8 ${theme === 'light' ? 'bg-white border border-zinc-200' : 'cartao-vidro border-white/5'}`}>
+              <h3 className={`text-lg font-black font-display italic mb-6 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Meus Agendamentos</h3>
+              <div className="space-y-4">
+                 {appointments.filter(a => a.clientPhone === loggedClient.phone).length === 0 && (
+                    <p className={`text-center py-10 italic ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'}`}>Nenhum agendamento ainda.</p>
+                 )}
+                 {appointments.filter(a => a.clientPhone === loggedClient.phone).map(app => (
+                    <div key={app.id} className={`flex items-center justify-between p-5 rounded-2xl transition-all ${theme === 'light' ? 'bg-zinc-50 border border-zinc-200' : 'bg-white/5 border border-white/5'}`}>
+                       <div className="flex items-center gap-4">
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${app.status === 'CONCLUIDO_PAGO' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-blue-500/10 text-blue-400'}`}>
+                             {app.status === 'CONCLUIDO_PAGO' ? <Check size={20}/> : <Calendar size={20}/>}
+                          </div>
+                          <div>
+                             <p className={`text-lg font-black italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{app.serviceName}</p>
+                             <p className={`text-[10px] font-black uppercase tracking-widest ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-500'}`}>{new Date(app.date).toLocaleDateString('pt-BR')} • {app.startTime} com {app.professionalName}</p>
+                          </div>
+                       </div>
+                       <div className={`px-4 py-2 rounded-full text-[8px] font-black uppercase ${app.status === 'CONCLUIDO_PAGO' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-blue-500/10 text-blue-400'}`}>
+                          {app.status.replace('_', ' ')}
+                       </div>
+                    </div>
+                 ))}
+              </div>
+           </div>
+        </div>
+      )}
+
+      {view === 'BOOKING' && (
+        <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full p-6 pb-20 animate-in fade-in">
+           <header className="flex items-center gap-4 mb-10">
+             <button onClick={() => setView('HOME')} className={`p-3 rounded-xl border transition-all ${theme === 'light' ? 'border-zinc-300 text-zinc-700 hover:bg-zinc-50' : 'border-white/10 text-zinc-400 hover:bg-white/5'}`}><ChevronLeft size={24}/></button>
+             <h2 className={`text-3xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Reservar Ritual</h2>
+           </header>
+           
+           <div className={`rounded-[2.5rem] p-8 md:p-12 shadow-2xl flex flex-col gap-10 ${theme === 'light' ? 'bg-white border border-zinc-200' : 'cartao-vidro border-[#D4AF37]/10'}`}>
+              {passo === 2 && (
+                <div className="space-y-8 animate-in slide-in-from-right-2 text-center">
+                  <h3 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Escolha o Artífice</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                     {professionals.map(p => (
+                       <button key={p.id} onClick={() => { setSelecao({...selecao, professionalId: p.id}); setPasso(3); }} className={`p-6 rounded-[2rem] border transition-all flex flex-col items-center gap-4 group ${theme === 'light' ? 'bg-zinc-50 border-zinc-200 hover:border-blue-400' : 'bg-white/5 border-white/5 hover:border-[#D4AF37]'}`}>
+                          <div className="relative">
+                             <img src={p.avatar} className="w-20 h-20 rounded-2xl object-cover border-2 border-white/10 group-hover:border-[#D4AF37]" alt="" />
+                             <div className="absolute -bottom-2 -right-2 bg-[#D4AF37] text-black text-[8px] font-black px-2 py-1 rounded-lg flex items-center gap-1">
+                                <Heart size={8} fill="currentColor"/> {p.likes || 0}
+                             </div>
+                          </div>
+                          <span className={`text-[11px] font-black uppercase group-hover:text-[#D4AF37] ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{p.name}</span>
+                       </button>
+                     ))}
+                  </div>
                 </div>
               )}
 
               {passo === 3 && (
                 <div className="space-y-8 animate-in slide-in-from-right-2">
-                  <div className="grid grid-cols-7 gap-3">
-                    {Array.from({ length: 14 }).map((_, i) => {
-                      const d = new Date();
-                      d.setDate(d.getDate() + i);
-                      const dateStr = d.toISOString().split('T')[0];
-                      return (
-                        <button key={i} onClick={() => setSelecao({...selecao, date: dateStr})} className={`p-4 rounded-2xl border text-center transition-all ${selecao.date === dateStr ? 'bg-[#D4AF37] text-black border-transparent shadow-lg' : theme === 'light' ? 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:border-blue-400' : 'bg-white/5 border-white/5 text-zinc-400 hover:border-[#D4AF37]/50'}`}>
-                          <span className="text-[8px] font-black uppercase opacity-60">{d.toLocaleDateString('pt-BR', { weekday: 'short' })}</span>
-                          <span className="text-2xl font-black font-display">{d.getDate()}</span>
-                        </button>
-                      );
-                    })}
-                 </div>
-                {selecao.date && (
-                  <div className="space-y-6">
-                    {(Object.entries(turnos) as [string, string[]][]).map(([turno, horarios]) => (
-                      <div key={turno} className="space-y-4">
-                        <h4 className={`text-[9px] font-black uppercase tracking-widest flex items-center gap-4 ${theme === 'light' ? 'text-blue-600' : 'text-[#D4AF37]'}`}>{turno === 'manha' ? 'Manhã' : turno === 'tarde' ? 'Tarde' : 'Noite'} <div className={`h-px flex-1 ${theme === 'light' ? 'bg-zinc-200' : 'bg-white/5'}`}></div></h4>
-                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                          {horarios.map(t => {
-                             const isOccupied = checkAvailability(selecao.date, t, selecao.professionalId);
-                             return (
-                               <button key={t} disabled={isOccupied} onClick={() => { setSelecao({...selecao, time: t}); setPasso(4); }} className={`py-3 rounded-xl border text-[10px] font-black transition-all ${isOccupied ? 'border-red-500/20 text-red-500/30 cursor-not-allowed bg-red-500/5' : selecao.time === t ? 'bg-[#D4AF37] text-black border-transparent shadow-lg' : theme === 'light' ? 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:border-blue-400' : 'bg-white/5 border-white/5 text-zinc-400 hover:border-[#D4AF37]/50'}`}>
-                                  {t}
-                               </button>
-                             );
-                          })}
-                        </div>
-                      </div>
-                    ))}
+                  <div className="text-center space-y-2"><h3 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Data e Horário</h3></div>
+                  {bookingError && <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-500 text-[10px] font-black uppercase text-center">{bookingError}</div>}
+                  <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide snap-x">
+                     {[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14].map(i => {
+                       const d = new Date(); d.setDate(d.getDate() + i);
+                       const dateStr = d.toISOString().split('T')[0];
+                       return (
+                         <button key={i} onClick={() => { setSelecao({...selecao, date: dateStr}); setBookingError(null); }} className={`snap-center flex-shrink-0 w-24 h-28 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1 ${selecao.date === dateStr ? 'bg-[#D4AF37] text-black border-transparent scale-105 shadow-xl' : theme === 'light' ? 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:border-zinc-400' : 'bg-white/5 border-white/5 text-zinc-500 hover:border-white/20'}`}>
+                            <span className="text-[8px] font-black uppercase opacity-60">{d.toLocaleDateString('pt-BR', { weekday: 'short' })}</span>
+                            <span className="text-2xl font-black font-display">{d.getDate()}</span>
+                         </button>
+                       );
+                     })}
                   </div>
-                )}
-              </div>
+                  {selecao.date && (
+                    <div className="space-y-6">
+                      {(Object.entries(turnos) as [string, string[]][]).map(([turno, horarios]) => (
+                        <div key={turno} className="space-y-4">
+                          <h4 className={`text-[9px] font-black uppercase tracking-widest flex items-center gap-4 ${theme === 'light' ? 'text-blue-600' : 'text-[#D4AF37]'}`}>{turno === 'manha' ? 'Manhã' : turno === 'tarde' ? 'Tarde' : 'Noite'} <div className={`h-px flex-1 ${theme === 'light' ? 'bg-zinc-200' : 'bg-white/5'}`}></div></h4>
+                          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                            {horarios.map(t => {
+                               const isOccupied = checkAvailability(selecao.date, t, selecao.professionalId);
+                               return (
+                                 <button key={t} disabled={isOccupied} onClick={() => { setSelecao({...selecao, time: t}); setPasso(4); }} className={`py-3 rounded-xl border text-[10px] font-black transition-all ${isOccupied ? 'border-red-500/20 text-red-500/30 cursor-not-allowed bg-red-500/5' : selecao.time === t ? 'bg-[#D4AF37] text-black border-transparent shadow-lg' : theme === 'light' ? 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:border-blue-400' : 'bg-white/5 border-white/5 text-zinc-400 hover:border-[#D4AF37]/50'}`}>
+                                    {t}
+                                 </button>
+                               );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
 
               {passo === 4 && (
@@ -758,7 +805,6 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
               )}
            </div>
         </div>
-      </div>
       )}
 
       {showReviewModal && (
