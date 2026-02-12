@@ -27,8 +27,8 @@ const App: React.FC = () => {
     if (user && user.role === 'ADMIN') {
       if (appointments.length > lastAppointmentCount && lastAppointmentCount > 0) {
         // Toca som de notificação
-        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYHGmW56+ahUBEJTqXh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEKT6Xh8LdjHAU2jdXzyn0tBSh+zPLaizsIHGS56+mjTxEK');
-        audio.volume = 0.5;
+        const audio = new Audio('https://www.zedge.net/ringtones/7372fbdf-f7e2-4444-aa66-7ab6b01cccdd');
+        audio.volume = 0.9;
         audio.play().catch(e => console.log('Não foi possível tocar o som'));
       }
       setLastAppointmentCount(appointments.length);
