@@ -52,11 +52,11 @@ const Clients: React.FC = () => {
     <div className="space-y-8 animate-in fade-in duration-500 h-full overflow-auto pb-20 scrollbar-hide">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-white font-display italic tracking-tight">Membros do Clube</h1>
+          <h1 className="text-3xl font-black text-white font-display italic tracking-tight">Clintes do Barber Pub</h1>
           <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">A base exclusiva da sua barbearia.</p>
         </div>
         <button onClick={() => { setEditingId(null); setFormData({name:'', phone:'', email:''}); setShowAddModal(true); }} className="flex items-center gap-2 gradiente-ouro text-black px-6 md:px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl">
-          <UserPlus size={16} /> NOVO MEMBRO
+          <UserPlus size={16} /> NOVO CLIENTE
         </button>
       </div>
 
@@ -64,7 +64,7 @@ const Clients: React.FC = () => {
         <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600" />
         <input 
           type="text" 
-          placeholder="Pesquisar Membros (Nome ou Celular)..." 
+          placeholder="Pesquisar Clientes (Nome ou Celular)..." 
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
           className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-5 pl-16 pr-8 text-sm focus:border-[#D4AF37]/50 outline-none transition-all placeholder:text-zinc-700 font-bold text-white"
@@ -76,7 +76,7 @@ const Clients: React.FC = () => {
           <table className="w-full text-left min-w-[700px]">
             <thead>
               <tr className="bg-white/[0.01] text-zinc-600 text-[9px] font-black uppercase tracking-[0.2em] border-b border-white/5">
-                <th className="px-8 py-6">Membro</th>
+                <th className="px-8 py-6">Cliente</th>
                 <th className="px-8 py-6">Contato</th>
                 <th className="px-8 py-6">Frequência</th>
                 <th className="px-8 py-6 text-right">Opções</th>
@@ -118,7 +118,7 @@ const Clients: React.FC = () => {
               ))}
               {filteredClients.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-8 py-20 text-center text-[10px] text-zinc-600 font-black uppercase italic tracking-widest">Nenhum membro encontrado na base.</td>
+                  <td colSpan={4} className="px-8 py-20 text-center text-[10px] text-zinc-600 font-black uppercase italic tracking-widest">Nenhum cliente encontrado na base.</td>
                 </tr>
               )}
             </tbody>
@@ -202,7 +202,7 @@ const Clients: React.FC = () => {
       {showAddModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl animate-in zoom-in-95 duration-300">
           <div className="cartao-vidro w-full max-w-lg rounded-[3rem] p-8 md:p-12 space-y-10 border-[#D4AF37]/20 shadow-2xl relative">
-            <h2 className="text-2xl font-black font-display italic text-white tracking-tight">{editingId ? 'Refinar Cadastro' : 'Novo Membro Signature'}</h2>
+            <h2 className="text-2xl font-black font-display italic text-white tracking-tight">{editingId ? 'Refinar Cadastro' : 'Novo Cliente '}</h2>
             <div className="space-y-6">
               <div className="space-y-2">
                  <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-1">Nome Completo</label>
