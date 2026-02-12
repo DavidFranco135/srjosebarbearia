@@ -27,9 +27,18 @@ const App: React.FC = () => {
     if (user && user.role === 'ADMIN') {
       if (appointments.length > lastAppointmentCount && lastAppointmentCount > 0) {
         // Toca som de notificação
-        const audio = new Audio('https://res.cloudinary.com/dk54i7mei/video/upload/v1770868691/iphone_hkkuz7.mp3');
-        audio.volume = 0.9;
-        audio.play().catch(e => console.log('Não foi possível tocar o som'));
+        try {
+          fetch('https://res.cloudinary.com/dk54i7mei/video/upload/v1770868691/iphone_hkkuz7.mp3')
+            .then(response => response.blob())
+            .then(blob => {
+              const audio = new Audio(URL.createObjectURL(blob));
+              audio.volume = 0.5;
+              audio.play().catch(e => console.log('Não foi possível tocar o som:', e));
+            })
+            .catch(e => console.log('Erro ao buscar áudio:', e));
+        } catch (error) {
+          console.log('Erro na notificação sonora:', error);
+        }
       }
       setLastAppointmentCount(appointments.length);
     }
