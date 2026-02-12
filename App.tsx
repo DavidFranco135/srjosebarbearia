@@ -27,7 +27,7 @@ const App: React.FC = () => {
     if (user && user.role === 'ADMIN') {
       if (appointments.length > lastAppointmentCount && lastAppointmentCount > 0) {
         // Toca som de notificação
-        const audio = new Audio('https://www.zedge.net/ringtones/7372fbdf-f7e2-4444-aa66-7ab6b01cccdd');
+        const audio = new Audio('https://res.cloudinary.com/dk54i7mei/video/upload/v1770868691/iphone_hkkuz7.mp3');
         audio.volume = 0.9;
         audio.play().catch(e => console.log('Não foi possível tocar o som'));
       }
