@@ -71,7 +71,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
             })}
           </nav>
 
-          <div className="p-4 border-t border-white/5">
+          <div className={`p-4 border-t ${theme === 'light' ? 'border-zinc-200' : 'border-white/5'}`}>
             <button onClick={logout} className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-red-500 hover:bg-red-500/10 transition-all`}>
               <LogOut size={22} />
               {!isCollapsed && <span className="font-black text-[11px] uppercase tracking-widest">Sair do Painel</span>}
@@ -100,7 +100,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
               <button onClick={() => setShowNotifs(!showNotifs)} className={`p-3 rounded-2xl border transition-all relative ${theme === 'light' ? 'bg-zinc-100 border-zinc-200 text-zinc-600' : 'bg-white/5 border-white/10 text-zinc-400 hover:text-[#D4AF37]'}`}>
                 <Bell size={18} />
                 {notifications.filter(n => !n.read).length > 0 && (
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[#0A0A0A]"></span>
+                  <span className={`absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 ${theme === 'light' ? 'border-white' : 'border-[#0A0A0A]'}`}></span>
                 )}
               </button>
               
@@ -108,14 +108,14 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowNotifs(false)}></div>
                   <div className={`absolute right-0 mt-4 w-80 rounded-[2rem] shadow-2xl z-50 border overflow-hidden animate-in slide-in-from-top-2 ${theme === 'light' ? 'bg-white border-zinc-200' : 'bg-[#111111] border-white/10'}`}>
-                    <div className="p-6 border-b border-white/5 flex justify-between items-center bg-[#D4AF37]">
+                    <div className={`p-6 border-b flex justify-between items-center bg-[#D4AF37] ${theme === 'light' ? 'border-zinc-200' : 'border-white/5'}`}>
                        <h3 className="text-xs font-black text-black uppercase">Notificações</h3>
                        <button onClick={clearNotifications} className="text-black/50 hover:text-black transition-colors"><Trash2 size={14}/></button>
                     </div>
                     <div className="max-h-96 overflow-y-auto scrollbar-hide">
                        {notifications.length === 0 && <p className="p-10 text-center text-xs text-zinc-500 italic">Nada por aqui.</p>}
                        {notifications.map(n => (
-                         <div key={n.id} onClick={() => { markNotificationAsRead(n.id); setShowNotifs(false); setActiveTab('appointments'); }} className={`p-6 border-b border-white/5 hover:bg-white/5 cursor-pointer transition-all ${!n.read ? 'bg-[#D4AF37]/5 border-l-4 border-l-[#D4AF37]' : ''}`}>
+                         <div key={n.id} onClick={() => { markNotificationAsRead(n.id); setShowNotifs(false); setActiveTab('appointments'); }} className={`p-6 border-b cursor-pointer transition-all ${theme === 'light' ? 'border-zinc-200 hover:bg-zinc-50' : 'border-white/5 hover:bg-white/5'} ${!n.read ? 'bg-[#D4AF37]/5 border-l-4 border-l-[#D4AF37]' : ''}`}>
                             <p className="text-xs font-black text-[#D4AF37]">{n.title}</p>
                             <p className={`text-[11px] mt-1 leading-relaxed ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-400'}`}>{n.message}</p>
                             <p className="text-[9px] text-zinc-500 mt-2 font-bold">{n.time}</p>
