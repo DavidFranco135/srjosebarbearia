@@ -62,6 +62,8 @@ export interface Suggestion {
   clientPhone: string;
   text: string;
   date: string;
+  response?: string;  // ✅ NOVO: Campo para resposta do admin
+  responseDate?: string;  // ✅ NOVO: Data da resposta
 }
 
 export interface Appointment {
