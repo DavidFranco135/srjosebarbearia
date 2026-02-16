@@ -42,8 +42,8 @@ const Professionals: React.FC = () => {
     <div className="space-y-10 animate-in fade-in duration-500 h-full overflow-auto pb-10 scrollbar-hide">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className={`text-3xl font-black font-display italic tracking-tight ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Equipe Artística</h1>
-          <p className={`text-xs font-black uppercase tracking-widest ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-500'}`}>Os artífices do estilo.</p>
+          <h1 className={`text-3xl font-black font-display italic tracking-tight ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>PROFICIONAIS</h1>
+          <p className={`text-xs font-black uppercase tracking-widest ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-500'}`}>Os mestres do estilo.</p>
         </div>
         <button onClick={() => setShowModal(true)} className="flex items-center gap-2 gradiente-ouro text-black px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl">
           <UserPlus size={16} /> NOVO BARBEIRO
