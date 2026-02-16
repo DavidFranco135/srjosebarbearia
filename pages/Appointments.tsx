@@ -45,6 +45,16 @@ const Appointments: React.FC = () => {
     setQuickClient({ name: '', phone: '' });
   };
 
+  // NOVA FUNÇÃO: Criar agendamento ao clicar em um horário vazio
+  const handleClickEmptySlot = (professionalId: string, timeSlot: string) => {
+    setNewApp({
+      ...newApp,
+      professionalId: professionalId,
+      startTime: timeSlot
+    });
+    setShowAddModal(true);
+  };
+
   const handleCreateAppointment = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -159,33 +169,44 @@ const Appointments: React.FC = () => {
         {viewMode === 'grid' ? (
           <div className={`overflow-auto h-full scrollbar-hide ${compactView ? '' : ''}`}>
             <div className={compactView ? 'w-full' : 'min-w-[900px]'}>
+              {/* CABEÇALHO: Reduzido padding vertical */}
               <div className={`border-b border-white/5 bg-white/[0.02] sticky top-0 z-10 ${compactView ? 'grid grid-cols-[60px_repeat(auto-fit,minmax(120px,1fr))]' : 'grid grid-cols-[80px_repeat(auto-fit,minmax(200px,1fr))]'}`}>
-                <div className={`flex items-center justify-center text-zinc-500 ${compactView ? 'p-2' : 'p-4'}`}><Clock size={compactView ? 14 : 18} /></div>
+                <div className={`flex items-center justify-center text-zinc-500 ${compactView ? 'p-2' : 'p-3'}`}><Clock size={compactView ? 14 : 18} /></div>
                 {professionals.map(prof => (
-                  <div key={prof.id} className={`flex items-center justify-center gap-3 border-r border-white/5 ${compactView ? 'p-2 flex-col' : 'p-4'}`}>
+                  <div key={prof.id} className={`flex items-center justify-center gap-3 border-r border-white/5 ${compactView ? 'p-2 flex-col' : 'p-3'}`}>
                     <img src={prof.avatar} className={`rounded-lg object-cover border border-[#D4AF37] ${compactView ? 'w-6 h-6' : 'w-8 h-8'}`} alt="" />
                     <span className={`font-black uppercase tracking-widest ${compactView ? 'text-[8px]' : 'text-[10px]'}`}>{prof.name.split(' ')[0]}</span>
                   </div>
                 ))}
               </div>
+              {/* LINHAS DE HORÁRIO: Altura reduzida de 100px/50px para 60px/35px */}
               {hours.map(hour => (
-                <div key={hour} className={`border-b border-white/[0.03] ${compactView ? 'grid grid-cols-[60px_repeat(auto-fit,minmax(120px,1fr))] min-h-[50px]' : 'grid grid-cols-[80px_repeat(auto-fit,minmax(200px,1fr))] min-h-[100px]'}`}>
+                <div key={hour} className={`border-b border-white/[0.03] ${compactView ? 'grid grid-cols-[60px_repeat(auto-fit,minmax(120px,1fr))] min-h-[35px]' : 'grid grid-cols-[80px_repeat(auto-fit,minmax(200px,1fr))] min-h-[60px]'}`}>
                   <div className="flex items-center justify-center border-r border-white/5 bg-white/[0.01]"><span className={`font-black text-zinc-600 ${compactView ? 'text-[9px]' : 'text-[10px]'}`}>{hour}</span></div>
                   {professionals.map(prof => {
                     const app = appointmentsToday.find(a => a.professionalId === prof.id && a.startTime.split(':')[0] === hour.split(':')[0] && a.status !== 'CANCELADO');
                     return (
-                      <div key={prof.id} className={`border-r border-white/5 last:border-r-0 ${compactView ? 'p-1' : 'p-2'}`}>
-                        {app && (
-                          <div className={`h-full w-full rounded-2xl border flex flex-col justify-between transition-all group ${app.status === 'CONCLUIDO_PAGO' ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-[#D4AF37]/30 bg-[#D4AF37]/5'} ${compactView ? 'p-1.5 rounded-lg' : 'p-3'}`}>
+                      <div 
+                        key={prof.id} 
+                        className={`border-r border-white/5 last:border-r-0 ${compactView ? 'p-1' : 'p-1.5'} ${!app ? 'cursor-pointer hover:bg-white/5 transition-all' : ''}`}
+                        onClick={() => !app && handleClickEmptySlot(prof.id, hour)}
+                        title={!app ? `Clique para agendar às ${hour}` : ''}
+                      >
+                        {app ? (
+                          <div className={`h-full w-full rounded-2xl border flex flex-col justify-between transition-all group ${app.status === 'CONCLUIDO_PAGO' ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-[#D4AF37]/30 bg-[#D4AF37]/5'} ${compactView ? 'p-1.5 rounded-lg' : 'p-2'}`}>
                             <div className="truncate">
-                              <h4 className={`font-black uppercase truncate ${compactView ? 'text-[8px]' : 'text-[11px]'} ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{app.clientName}</h4>
-                              {!compactView && <p className="text-[9px] font-black opacity-50 uppercase mt-1 truncate">{app.serviceName}</p>}
+                              <h4 className={`font-black uppercase truncate ${compactView ? 'text-[8px]' : 'text-[10px]'} ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{app.clientName}</h4>
+                              {!compactView && <p className="text-[8px] font-black opacity-50 uppercase mt-1 truncate">{app.serviceName}</p>}
                             </div>
-                            <div className={`flex items-center justify-end gap-1 ${compactView ? 'mt-0.5' : 'mt-2'}`}>
-                               <button onClick={() => updateAppointmentStatus(app.id, 'CONCLUIDO_PAGO')} className={`rounded-lg transition-all ${app.status === 'CONCLUIDO_PAGO' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-zinc-500 hover:text-white'} ${compactView ? 'p-0.5' : 'p-1.5'}`} title="Marcar como Pago"><DollarSign size={compactView ? 9 : 12}/></button>
-                               <button onClick={() => setShowRescheduleModal(app)} className={`bg-white/10 text-zinc-500 hover:text-white rounded-lg transition-all ${compactView ? 'p-0.5' : 'p-1.5'}`} title="Reagendar"><RefreshCw size={compactView ? 9 : 12}/></button>
-                               <button onClick={() => updateAppointmentStatus(app.id, 'CANCELADO')} className={`bg-white/10 text-zinc-500 hover:text-red-500 rounded-lg transition-all ${compactView ? 'p-0.5' : 'p-1.5'}`} title="Cancelar"><X size={compactView ? 9 : 12}/></button>
+                            <div className={`flex items-center justify-end gap-1 ${compactView ? 'mt-0.5' : 'mt-1'}`}>
+                               <button onClick={(e) => { e.stopPropagation(); updateAppointmentStatus(app.id, 'CONCLUIDO_PAGO'); }} className={`rounded-lg transition-all ${app.status === 'CONCLUIDO_PAGO' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-zinc-500 hover:text-white'} ${compactView ? 'p-0.5' : 'p-1'}`} title="Marcar como Pago"><DollarSign size={compactView ? 9 : 11}/></button>
+                               <button onClick={(e) => { e.stopPropagation(); setShowRescheduleModal(app); }} className={`bg-white/10 text-zinc-500 hover:text-white rounded-lg transition-all ${compactView ? 'p-0.5' : 'p-1'}`} title="Reagendar"><RefreshCw size={compactView ? 9 : 11}/></button>
+                               <button onClick={(e) => { e.stopPropagation(); updateAppointmentStatus(app.id, 'CANCELADO'); }} className={`bg-white/10 text-zinc-500 hover:text-red-500 rounded-lg transition-all ${compactView ? 'p-0.5' : 'p-1'}`} title="Cancelar"><X size={compactView ? 9 : 11}/></button>
                             </div>
+                          </div>
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center opacity-0 hover:opacity-40 transition-opacity">
+                            <Plus size={compactView ? 12 : 16} className="text-[#D4AF37]" />
                           </div>
                         )}
                       </div>
