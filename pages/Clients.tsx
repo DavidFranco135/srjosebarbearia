@@ -52,7 +52,7 @@ const Clients: React.FC = () => {
     <div className="space-y-8 animate-in fade-in duration-500 h-full overflow-auto pb-20 scrollbar-hide">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-white font-display italic tracking-tight">Clintes do Barber Pub</h1>
+          <h1 className="text-3xl font-black text-white font-display italic tracking-tight">Clientes do Barber Pub</h1>
           <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">A base exclusiva da sua barbearia.</p>
         </div>
         <button onClick={() => { setEditingId(null); setFormData({name:'', phone:'', email:''}); setShowAddModal(true); }} className="flex items-center gap-2 gradiente-ouro text-black px-6 md:px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl">
