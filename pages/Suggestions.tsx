@@ -45,7 +45,7 @@ const Suggestions: React.FC = () => {
           {suggestions.map((sug) => (
             <div 
               key={sug.id} 
-              className={`rounded-[2.5rem] p-8 border relative group hover:border-[#D4AF37]/40 transition-all duration-500 ${
+              className={`rounded-[2.5rem] p-8 border relative group hover:border-[#C58A4A]/40 transition-all duration-500 ${
                 theme === 'light' 
                   ? 'bg-white border-zinc-200 shadow-sm' 
                   : 'cartao-vidro border-white/5'
@@ -53,7 +53,7 @@ const Suggestions: React.FC = () => {
             >
               <div className="flex items-start justify-between mb-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37]">
+                  <div className="w-12 h-12 rounded-2xl bg-[#C58A4A]/10 flex items-center justify-center text-[#C58A4A]">
                     <User size={24}/>
                   </div>
                   <div>
@@ -96,7 +96,7 @@ const Suggestions: React.FC = () => {
                     value={replyText[sug.id] || sug.response || ''}
                     onChange={(e) => setReplyText({...replyText, [sug.id]: e.target.value})}
                     placeholder="Escreva uma resposta para o cliente..."
-                    className={`w-full border rounded-2xl p-4 text-xs outline-none focus:border-[#D4AF37] transition-all resize-none h-24 ${
+                    className={`w-full border rounded-2xl p-4 text-xs outline-none focus:border-[#C58A4A] transition-all resize-none h-24 ${
                       theme === 'light'
                         ? 'bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400'
                         : 'bg-black/40 border-white/10 text-white placeholder:text-zinc-500'
@@ -104,15 +104,15 @@ const Suggestions: React.FC = () => {
                   />
                   <button 
                     onClick={() => handleReply(sug.id)}
-                    className="absolute bottom-3 right-3 p-2 bg-[#D4AF37] text-black rounded-lg hover:scale-110 transition-all"
+                    className="absolute bottom-3 right-3 p-2 bg-[#C58A4A] text-black rounded-lg hover:scale-110 transition-all"
                   >
                     <Send size={14} />
                   </button>
                 </div>
                 {sug.response && (
                   <div className="flex items-center gap-2 px-2">
-                    <CheckCircle2 size={12} className="text-[#D4AF37]" />
-                    <span className="text-[9px] font-black text-[#D4AF37] uppercase tracking-widest">
+                    <CheckCircle2 size={12} className="text-[#C58A4A]" />
+                    <span className="text-[9px] font-black text-[#C58A4A] uppercase tracking-widest">
                       Respondido {sug.responseDate && `em ${sug.responseDate}`}
                     </span>
                   </div>
@@ -127,7 +127,7 @@ const Suggestions: React.FC = () => {
                 }`}>
                   <Calendar size={12}/> Recebida em: {sug.date}
                 </span>
-                <div className="w-8 h-8 rounded-lg bg-[#D4AF37]/5 flex items-center justify-center text-[#D4AF37]/30">
+                <div className="w-8 h-8 rounded-lg bg-[#C58A4A]/5 flex items-center justify-center text-[#C58A4A]/30">
                   <MessageSquare size={14}/>
                 </div>
               </div>
