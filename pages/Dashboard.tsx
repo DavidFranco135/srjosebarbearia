@@ -21,7 +21,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     .reduce((acc, curr) => acc + curr.amount, 0);
 
   const estatisticas = [
-    { id: 'financial', label: 'Faturamento', value: `R$ ${totalRevenue.toFixed(2)}`, change: '+12%', icon: Wallet, color: '#D4AF37' },
+    { id: 'financial', label: 'Faturamento', value: `R$ ${totalRevenue.toFixed(2)}`, change: '+12%', icon: Wallet, color: '#C58A4A' },
     { id: 'appointments', label: 'Reservas', value: appointments.length.toString(), change: '+5', icon: CalendarCheck, color: '#10b981' },
     { id: 'clients', label: 'Clientes', value: clients.length.toString(), change: '+8%', icon: Users, color: '#3b82f6' },
     { id: 'services', label: 'Serviços', value: services.length.toString(), change: '+2', icon: Scissors, color: '#a855f7' },
@@ -34,7 +34,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl md:text-4xl font-black text-color-main font-display tracking-tight flex items-center gap-3">
-            Gestão <span className="text-[#D4AF37] italic">Sr. José</span>
+            Gestão <span className="text-[#C58A4A] italic">Sr. José</span>
           </h1>
           <p className="text-color-sec mt-1 text-sm md:text-lg font-medium opacity-60">Controle completo da sua unidade signature.</p>
         </div>
@@ -45,7 +45,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           <div 
             key={stat.id} 
             onClick={() => onNavigate(stat.id)}
-            className="cartao-vidro p-6 md:p-8 rounded-[2rem] hover:border-[#D4AF37]/50 transition-all duration-500 group relative cursor-pointer overflow-hidden border-white/5"
+            className="cartao-vidro p-6 md:p-8 rounded-[2rem] hover:border-[#C58A4A]/50 transition-all duration-500 group relative cursor-pointer overflow-hidden border-white/5"
           >
             <div className="flex items-start justify-between">
               <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center group-hover:scale-110 transition-all">
@@ -94,7 +94,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 onClick={() => onNavigate('appointments')}
                 className="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/[0.03] transition-all cursor-pointer border border-transparent hover:border-white/5 group"
               >
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-zinc-900 flex items-center justify-center font-black text-[#D4AF37] border border-white/5 group-hover:bg-[#D4AF37] group-hover:text-black transition-all">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-zinc-900 flex items-center justify-center font-black text-[#C58A4A] border border-white/5 group-hover:bg-[#C58A4A] group-hover:text-black transition-all">
                   {app.clientName.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
