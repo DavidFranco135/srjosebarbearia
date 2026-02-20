@@ -73,7 +73,7 @@ const App: React.FC = () => {
     return (
       <div className={`relative min-h-screen theme-transition ${theme === 'light' ? 'bg-[#F8F9FA]' : 'bg-[#050505]'}`}>
         <div className="fixed bottom-8 left-8 z-[100] flex gap-3">
-          <button onClick={toggleTheme} className={`p-4 rounded-2xl border shadow-2xl transition-all ${theme === 'light' ? 'bg-white border-zinc-200 text-zinc-600 hover:text-zinc-900' : 'bg-[#D4AF37] text-black border-transparent'}`}>
+          <button onClick={toggleTheme} className={`p-4 rounded-2xl border shadow-2xl transition-all ${theme === 'light' ? 'bg-white border-zinc-200 text-zinc-600 hover:text-zinc-900' : 'bg-[#C58A4A] text-black border-transparent'}`}>
             {theme === 'dark' ? <Sun size={24} /> : <Moon size={24} />}
           </button>
         </div>
@@ -102,7 +102,7 @@ const App: React.FC = () => {
   // Se não houver usuário logado e NÃO estiver na visão pública, mostra a tela de login (acesso ADM/Login Geral)
   if (!user && !isPublicView) {
     return (
-      <div className={`min-h-screen flex items-center justify-center p-6 selection:bg-[#D4AF37]/30 relative overflow-hidden transition-all duration-500 ${theme === 'light' ? 'bg-[#F8F9FA] text-[#1A1A1A]' : 'bg-[#050505] text-[#f3f4f6]'}`}>
+      <div className={`min-h-screen flex items-center justify-center p-6 selection:bg-[#C58A4A]/30 relative overflow-hidden transition-all duration-500 ${theme === 'light' ? 'bg-[#F8F9FA] text-[#1A1A1A]' : 'bg-[#050505] text-[#f3f4f6]'}`}>
         <div className="absolute inset-0 z-0">
            <img src={config.loginBackground} className={`w-full h-full object-cover grayscale transition-all duration-1000 ${theme === 'light' ? 'opacity-5' : 'opacity-20'}`} alt="Login Background" />
            <div className={`absolute inset-0 bg-gradient-to-t ${theme === 'light' ? 'from-[#F8F9FA] via-transparent to-[#F8F9FA]' : 'from-[#050505] via-transparent to-[#050505]'}`}></div>
@@ -116,7 +116,7 @@ const App: React.FC = () => {
           <div className={`absolute top-0 inset-x-0 h-1.5 gradiente-ouro rounded-t-[4rem]`}></div>
           
           <div className="text-center space-y-6">
-            <div className="w-32 h-32 rounded-3xl mx-auto overflow-hidden shadow-2xl shadow-[#D4AF37]/30 border-2 border-[#D4AF37]/30">
+            <div className="w-32 h-32 rounded-3xl mx-auto overflow-hidden shadow-2xl shadow-[#C58A4A]/30 border-2 border-[#C58A4A]/30">
                <img src={config.logo} className="w-full h-full object-cover" alt="Logo/Profile" />
             </div>
             <div className="space-y-2">
@@ -130,25 +130,25 @@ const App: React.FC = () => {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className={`text-[10px] font-black uppercase tracking-widest ml-2 ${theme === 'light' ? 'text-zinc-600' : 'opacity-40'}`}>E-mail ou WhatsApp</label>
-                  <input type="text" placeholder="gestor@srjose.com.br ou (21)..." value={loginIdentifier} onChange={e => setLoginIdentifier(e.target.value)} className={`w-full border p-6 rounded-[2rem] outline-none focus:border-[#D4AF37] transition-all font-bold text-lg ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400' : 'bg-white/5 border-white/10 text-white'}`} />
+                  <input type="text" placeholder="gestor@srjose.com.br ou (21)..." value={loginIdentifier} onChange={e => setLoginIdentifier(e.target.value)} className={`w-full border p-6 rounded-[2rem] outline-none focus:border-[#C58A4A] transition-all font-bold text-lg ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400' : 'bg-white/5 border-white/10 text-white'}`} />
                 </div>
                 <div className="space-y-2">
                   <label className={`text-[10px] font-black uppercase tracking-widest ml-2 ${theme === 'light' ? 'text-zinc-600' : 'opacity-40'}`}>Senha</label>
-                  <input type="password" placeholder="••••••" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} className={`w-full border p-6 rounded-[2rem] outline-none focus:border-[#D4AF37] transition-all font-bold text-lg ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400' : 'bg-white/5 border-white/10 text-white'}`} />
+                  <input type="password" placeholder="••••••" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} className={`w-full border p-6 rounded-[2rem] outline-none focus:border-[#C58A4A] transition-all font-bold text-lg ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400' : 'bg-white/5 border-white/10 text-white'}`} />
                 </div>
               </div>
               <button onClick={handleLogin} className="w-full gradiente-ouro text-black py-7 rounded-[2.5rem] font-black uppercase tracking-[0.2em] text-xs shadow-2xl hover:scale-[1.03] active:scale-[0.97] transition-all">ACESSAR</button>
               <div className="text-center">
-                <button onClick={() => setIsRegistering(true)} className={`text-[10px] font-black uppercase tracking-widest hover:underline ${theme === 'light' ? 'text-blue-600 hover:text-blue-700' : 'text-[#D4AF37]'}`}>Ainda não tem conta? Cadastre-se</button>
+                <button onClick={() => setIsRegistering(true)} className={`text-[10px] font-black uppercase tracking-widest hover:underline ${theme === 'light' ? 'text-blue-600 hover:text-blue-700' : 'text-[#C58A4A]'}`}>Ainda não tem conta? Cadastre-se</button>
               </div>
             </div>
           ) : (
             <div className="space-y-6">
               <div className="space-y-4">
-                <input type="text" placeholder="Nome Completo" value={registerData.name} onChange={e => setRegisterData({...registerData, name: e.target.value})} className={`w-full border p-5 rounded-2xl outline-none focus:border-[#D4AF37] font-bold ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400' : 'bg-white/5 border-white/10 text-white'}`} />
-                <input type="tel" placeholder="WhatsApp" value={registerData.phone} onChange={e => setRegisterData({...registerData, phone: e.target.value})} className={`w-full border p-5 rounded-2xl outline-none focus:border-[#D4AF37] font-bold ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400' : 'bg-white/5 border-white/10 text-white'}`} />
-                <input type="email" placeholder="E-mail" value={registerData.email} onChange={e => setRegisterData({...registerData, email: e.target.value})} className={`w-full border p-5 rounded-2xl outline-none focus:border-[#D4AF37] font-bold ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400' : 'bg-white/5 border-white/10 text-white'}`} />
-                <input type="password" placeholder="Crie uma Senha" value={registerData.password} onChange={e => setRegisterData({...registerData, password: e.target.value})} className={`w-full border p-5 rounded-2xl outline-none focus:border-[#D4AF37] font-bold ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400' : 'bg-white/5 border-white/10 text-white'}`} />
+                <input type="text" placeholder="Nome Completo" value={registerData.name} onChange={e => setRegisterData({...registerData, name: e.target.value})} className={`w-full border p-5 rounded-2xl outline-none focus:border-[#C58A4A] font-bold ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400' : 'bg-white/5 border-white/10 text-white'}`} />
+                <input type="tel" placeholder="WhatsApp" value={registerData.phone} onChange={e => setRegisterData({...registerData, phone: e.target.value})} className={`w-full border p-5 rounded-2xl outline-none focus:border-[#C58A4A] font-bold ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400' : 'bg-white/5 border-white/10 text-white'}`} />
+                <input type="email" placeholder="E-mail" value={registerData.email} onChange={e => setRegisterData({...registerData, email: e.target.value})} className={`w-full border p-5 rounded-2xl outline-none focus:border-[#C58A4A] font-bold ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400' : 'bg-white/5 border-white/10 text-white'}`} />
+                <input type="password" placeholder="Crie uma Senha" value={registerData.password} onChange={e => setRegisterData({...registerData, password: e.target.value})} className={`w-full border p-5 rounded-2xl outline-none focus:border-[#C58A4A] font-bold ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400' : 'bg-white/5 border-white/10 text-white'}`} />
               </div>
               <button onClick={handleRegister} className="w-full gradiente-ouro text-black py-6 rounded-[2.5rem] font-black uppercase tracking-widest text-xs shadow-xl">CADASTRAR E CONTINUAR</button>
               <div className="text-center">
@@ -157,7 +157,7 @@ const App: React.FC = () => {
             </div>
           )}
 
-          <button onClick={() => setIsPublicView(true)} className={`w-full text-[10px] font-black uppercase tracking-[0.3em] transition-all ${theme === 'light' ? 'text-zinc-600 hover:text-blue-600' : 'opacity-40 hover:opacity-100 hover:text-[#D4AF37]'}`}>Visualizar Site (Site Público)</button>
+          <button onClick={() => setIsPublicView(true)} className={`w-full text-[10px] font-black uppercase tracking-[0.3em] transition-all ${theme === 'light' ? 'text-zinc-600 hover:text-blue-600' : 'opacity-40 hover:opacity-100 hover:text-[#C58A4A]'}`}>Visualizar Site (Site Público)</button>
         </div>
       </div>
     );
