@@ -1,7 +1,7 @@
 import { Service, Professional, Client, Appointment, ShopConfig, VipPlan } from './types';
 
 export const CORES = {
-  primaria: '#D4AF37',
+  primaria: '#C58A4A',
   secundaria: '#C5A059',
   fundo: '#050505',
   cartao: '#0F0F0F',
