@@ -188,10 +188,10 @@ const Settings: React.FC = () => {
       <form id="settings-form" onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         <div className="lg:col-span-2 space-y-10">
           <div className={`rounded-[3.5rem] p-10 md:p-14 border-2 space-y-10 ${theme === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'cartao-vidro border-white/10'}`}>
-            <h3 className={`text-2xl font-black font-display italic flex items-center gap-4 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}><UserIcon className="text-[#D4AF37]" /> Perfil Master</h3>
+            <h3 className={`text-2xl font-black font-display italic flex items-center gap-4 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}><UserIcon className="text-[#C58A4A]" /> Perfil Master</h3>
             <div className="flex flex-col sm:flex-row items-center gap-10">
                <div className="relative group w-40 h-40">
-                  <img src={userData.avatar} className="w-full h-full rounded-[3rem] object-cover border-4 border-[#D4AF37]/30 shadow-2xl" alt="Avatar" />
+                  <img src={userData.avatar} className="w-full h-full rounded-[3rem] object-cover border-4 border-[#C58A4A]/30 shadow-2xl" alt="Avatar" />
                   <label className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-all flex flex-col items-center justify-center rounded-[3rem] cursor-pointer text-[10px] font-black uppercase tracking-widest gap-2 text-white">
                     <Upload size={24} /> {loading ? '...' : 'Trocar Foto'}
                     <input type="file" accept="image/*" className="hidden" onChange={e => handleImageChange('logo', e)} disabled={loading} />
@@ -213,7 +213,7 @@ const Settings: React.FC = () => {
           </div>
 
           <div className={`rounded-[3.5rem] p-10 md:p-14 border-2 ${theme === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'cartao-vidro border-white/10'} space-y-10`}>
-            <h3 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'} flex items-center gap-4`}><Store className="text-[#D4AF37]" /> Identidade do barber pub</h3>
+            <h3 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'} flex items-center gap-4`}><Store className="text-[#C58A4A]" /> Identidade do barber pub</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-3">
                 <label className={`text-xs font-black uppercase tracking-widest ml-1 ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'}`}>Nome da Casa</label>
@@ -235,7 +235,7 @@ const Settings: React.FC = () => {
           </div>
 
           <div className={`rounded-[3.5rem] p-10 md:p-14 border-2 ${theme === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'cartao-vidro border-white/10'} space-y-10`}>
-            <h3 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'} flex items-center gap-4`}><MapPin className="text-[#D4AF37]" /> Onde & Como</h3>
+            <h3 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'} flex items-center gap-4`}><MapPin className="text-[#C58A4A]" /> Onde & Como</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-3">
                 <label className={`text-xs font-black uppercase tracking-widest ml-1 ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'}`}>WhatsApp Business</label>
@@ -255,7 +255,7 @@ const Settings: React.FC = () => {
           <div className={`rounded-[3.5rem] p-10 md:p-14 border-2 ${theme === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'cartao-vidro border-white/10'} space-y-10`}>
             <div className="flex items-center justify-between">
               <h3 className={`text-2xl font-black font-display italic flex items-center gap-4 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>
-                <Crown className="text-[#D4AF37]" /> Planos VIP
+                <Crown className="text-[#C58A4A]" /> Planos VIP
               </h3>
               <button 
                 type="button"
@@ -285,7 +285,7 @@ const Settings: React.FC = () => {
                           {plan.status}
                         </span>
                       </div>
-                      <p className={`text-2xl font-black mb-2 ${theme === 'light' ? 'text-blue-600' : 'text-[#D4AF37]'}`}>
+                      <p className={`text-2xl font-black mb-2 ${theme === 'light' ? 'text-blue-600' : 'text-[#C58A4A]'}`}>
                         R$ {plan.price.toFixed(2)} <span className="text-sm">/{plan.period === 'MENSAL' ? 'mês' : 'ano'}</span>
                       </p>
                       <div className="space-y-1">
@@ -316,7 +316,7 @@ const Settings: React.FC = () => {
 
           <div className={`rounded-[3.5rem] p-10 md:p-14 border-2 ${theme === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'cartao-vidro border-white/10'} space-y-10`}>
             <div className="flex items-center justify-between">
-              <h3 className={`text-2xl font-black font-display italic flex items-center gap-4 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}><UserIcon className="text-[#D4AF37]" /> Gestão de Barbeiros</h3>
+              <h3 className={`text-2xl font-black font-display italic flex items-center gap-4 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}><UserIcon className="text-[#C58A4A]" /> Gestão de Barbeiros</h3>
               <button 
                 type="button"
                 onClick={async () => {
@@ -339,7 +339,7 @@ const Settings: React.FC = () => {
           <div className={`rounded-[3.5rem] p-12 border-2 text-center flex flex-col items-center ${theme === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'cartao-vidro border-white/10'}`}>
             <h3 className={`text-2xl font-black font-display italic mb-10 ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Logo Master</h3>
             <div className="relative group w-52 h-52 mb-6">
-              <img src={formData.logo} className="w-full h-full rounded-[3.5rem] object-cover border-4 border-[#D4AF37]/40 shadow-2xl transition-all" alt="Logo" />
+              <img src={formData.logo} className="w-full h-full rounded-[3.5rem] object-cover border-4 border-[#C58A4A]/40 shadow-2xl transition-all" alt="Logo" />
               <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center rounded-[3.5rem] cursor-pointer"><Upload className="text-white" size={32} /><input type="file" accept="image/*" className="hidden" onChange={e => handleImageChange('logo', e)} /></label>
             </div>
           </div>
@@ -348,7 +348,7 @@ const Settings: React.FC = () => {
 
       {showVipPlanModal && (
         <div className={`fixed inset-0 z-[200] flex items-center justify-center p-6 backdrop-blur-xl ${theme === 'light' ? 'bg-black/70' : 'bg-black/95'}`}>
-          <div className={`w-full max-w-2xl rounded-[3rem] p-12 space-y-8 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide ${theme === 'light' ? 'bg-white border border-zinc-200' : 'cartao-vidro border-[#D4AF37]/30'}`}>
+          <div className={`w-full max-w-2xl rounded-[3rem] p-12 space-y-8 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide ${theme === 'light' ? 'bg-white border border-zinc-200' : 'cartao-vidro border-[#C58A4A]/30'}`}>
             <div className="flex items-center justify-between">
               <h2 className={`text-3xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>
                 {editingPlan ? 'Editar Plano' : 'Novo Plano VIP'}
@@ -413,7 +413,7 @@ const Settings: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className={`text-xs font-black uppercase tracking-widest ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'}`}>Benefícios</label>
-                  <button type="button" onClick={addBenefit} className="text-[#D4AF37] text-xs font-black flex items-center gap-1 hover:opacity-80">
+                  <button type="button" onClick={addBenefit} className="text-[#C58A4A] text-xs font-black flex items-center gap-1 hover:opacity-80">
                     <Plus size={14}/> Adicionar
                   </button>
                 </div>
