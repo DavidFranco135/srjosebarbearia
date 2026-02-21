@@ -302,7 +302,11 @@ const Appointments: React.FC = () => {
                               {!compactView && <p className="text-[8px] font-black opacity-50 uppercase mt-1 truncate">{app.serviceName}</p>}
                             </div>
                             <div className={`flex items-center justify-end gap-1 ${compactView ? 'mt-0.5' : 'mt-1'}`}>
-                               <button onClick={(e) => { e.stopPropagation(); updateAppointmentStatus(app.id, 'CONCLUIDO_PAGO'); }} className={`rounded-lg transition-all ${app.status === 'CONCLUIDO_PAGO' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-zinc-500 hover:text-white'} ${compactView ? 'p-0.5' : 'p-1'}`} title="Marcar como Pago"><DollarSign size={compactView ? 9 : 11}/></button>
+                               <button 
+                                 onClick={(e) => { e.stopPropagation(); updateAppointmentStatus(app.id, app.status === 'CONCLUIDO_PAGO' ? 'PENDENTE' : 'CONCLUIDO_PAGO'); }} 
+                                 className={`rounded-lg transition-all ${app.status === 'CONCLUIDO_PAGO' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-zinc-500 hover:text-white'} ${compactView ? 'p-0.5' : 'p-1'}`} 
+                                 title={app.status === 'CONCLUIDO_PAGO' ? 'Marcar como Pendente' : 'Marcar como Pago'}
+                               ><DollarSign size={compactView ? 9 : 11}/></button>
                                <button onClick={(e) => { e.stopPropagation(); setShowRescheduleModal(app); }} className={`bg-white/10 text-zinc-500 hover:text-white rounded-lg transition-all ${compactView ? 'p-0.5' : 'p-1'}`} title="Reagendar"><RefreshCw size={compactView ? 9 : 11}/></button>
                                <button onClick={(e) => { e.stopPropagation(); updateAppointmentStatus(app.id, 'CANCELADO'); }} className={`bg-white/10 text-zinc-500 hover:text-red-500 rounded-lg transition-all ${compactView ? 'p-0.5' : 'p-1'}`} title="Cancelar"><X size={compactView ? 9 : 11}/></button>
                             </div>
@@ -342,7 +346,11 @@ const Appointments: React.FC = () => {
                      </div>
                   </div>
                   <div className="flex items-center gap-2">
-                     <button onClick={() => updateAppointmentStatus(app.id, 'CONCLUIDO_PAGO')} className={`p-2 rounded-xl border transition-all ${app.status === 'CONCLUIDO_PAGO' ? 'bg-emerald-500 text-white border-transparent' : 'bg-white/5 border-white/10 text-zinc-500 hover:text-white'}`} title="Marcar como Pago"><DollarSign size={16}/></button>
+                     <button 
+                       onClick={() => updateAppointmentStatus(app.id, app.status === 'CONCLUIDO_PAGO' ? 'PENDENTE' : 'CONCLUIDO_PAGO')} 
+                       className={`p-2 rounded-xl border transition-all ${app.status === 'CONCLUIDO_PAGO' ? 'bg-emerald-500 text-white border-transparent' : 'bg-white/5 border-white/10 text-zinc-500 hover:text-white'}`} 
+                       title={app.status === 'CONCLUIDO_PAGO' ? 'Marcar como Pendente' : 'Marcar como Pago'}
+                     ><DollarSign size={16}/></button>
                      <button onClick={() => setShowRescheduleModal(app)} className="p-2 bg-white/5 border border-white/10 text-zinc-500 hover:text-white rounded-xl transition-all" title="Reagendar"><RefreshCw size={16}/></button>
                      <button onClick={() => { if (window.confirm(`Excluir agendamento de ${app.clientName}?`)) deleteAppointment(app.id); }} className="p-2 bg-white/5 border border-white/10 text-zinc-500 hover:text-red-500 hover:border-red-500/30 rounded-xl transition-all" title="Excluir agendamento"><X size={16}/></button>
                   </div>
@@ -496,10 +504,10 @@ const Appointments: React.FC = () => {
                   <RefreshCw size={12}/> Reagendar
                 </button>
                 <button 
-                  onClick={() => { updateAppointmentStatus(app.id, 'CONCLUIDO_PAGO'); setShowDetailModal(null); }} 
-                  className="flex-1 gradiente-ouro text-black py-3 rounded-xl font-black uppercase text-[9px] flex items-center justify-center gap-2"
+                  onClick={() => { updateAppointmentStatus(app.id, app.status === 'CONCLUIDO_PAGO' ? 'PENDENTE' : 'CONCLUIDO_PAGO'); setShowDetailModal(null); }} 
+                  className={`flex-1 py-3 rounded-xl font-black uppercase text-[9px] flex items-center justify-center gap-2 ${app.status === 'CONCLUIDO_PAGO' ? 'bg-white/10 text-zinc-300 border border-white/10' : 'gradiente-ouro text-black'}`}
                 >
-                  <DollarSign size={12}/> Pago
+                  <DollarSign size={12}/> {app.status === 'CONCLUIDO_PAGO' ? 'Voltar a Pendente' : 'Marcar Pago'}
                 </button>
               </div>
             </div>
