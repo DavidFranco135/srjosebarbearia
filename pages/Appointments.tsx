@@ -350,7 +350,7 @@ const Appointments: React.FC = () => {
       {showRescheduleModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl animate-in zoom-in-95">
           <div className="cartao-vidro w-full max-w-sm rounded-[2.5rem] p-10 space-y-8 border-[#C58A4A]/30 shadow-2xl">
-             <div className="text-center space-y-2"><h2 className="text-xl font-black font-display italic">Reagendar Ritual</h2><p className="text-[10px] text-zinc-500 uppercase font-black">Escolha novo horário para {showRescheduleModal.clientName}</p></div>
+             <div className="text-center space-y-2"><h2 className="text-xl font-black font-display italic">Reagendar Serviço</h2><p className="text-[10px] text-zinc-500 uppercase font-black">Escolha novo horário para {showRescheduleModal.clientName}</p></div>
              <div className="space-y-4">
                 <input type="date" value={rescheduleData.date} onChange={e => setRescheduleData({...rescheduleData, date: e.target.value})} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-xs font-black" />
                 <input type="time" value={rescheduleData.time} onChange={e => setRescheduleData({...rescheduleData, time: e.target.value})} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-xs font-black" />
