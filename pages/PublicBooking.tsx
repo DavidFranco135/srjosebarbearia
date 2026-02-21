@@ -31,6 +31,9 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
   // Estados para verificação de cadastro no agendamento (passo 4)
   const [lookupInput, setLookupInput] = useState('');
   const [lookupError, setLookupError] = useState<string | null>(null);
+  const [lookupClientFound, setLookupClientFound] = useState<Client | null>(null);
+  const [lookupPassword, setLookupPassword] = useState('');
+  const [lookupPasswordError, setLookupPasswordError] = useState<string | null>(null);
   const [clientVerified, setClientVerified] = useState(false);
 
   // Estados para cadastro no Portal do Cliente
@@ -179,12 +182,28 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
       return emailMatch || phoneMatch;
     });
     if (found) {
-      setSelecao(prev => ({ ...prev, clientName: found.name, clientPhone: found.phone, clientEmail: found.email || '' }));
-      setClientVerified(true);
+      setLookupClientFound(found);
       setLookupError(null);
+      setLookupPassword('');
+      setLookupPasswordError(null);
     } else {
       setLookupError("Nenhum cadastro encontrado com esses dados.");
     }
+  };
+
+  const handleVerifyPassword = () => {
+    if (!lookupClientFound) return;
+    if (!lookupPassword) {
+      setLookupPasswordError("Digite sua senha.");
+      return;
+    }
+    if (lookupClientFound.password !== lookupPassword) {
+      setLookupPasswordError("Senha incorreta. Tente novamente.");
+      return;
+    }
+    setSelecao(prev => ({ ...prev, clientName: lookupClientFound.name, clientPhone: lookupClientFound.phone, clientEmail: lookupClientFound.email || '' }));
+    setClientVerified(true);
+    setLookupPasswordError(null);
   };
 
   const handleRegisterPortal = async () => {
@@ -820,7 +839,7 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
       {view === 'BOOKING' && (
         <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full p-6 pb-20 animate-in fade-in">
            <header className="flex items-center gap-4 mb-10">
-             <button onClick={() => { setView('HOME'); setShowQuickClient(false); setClientVerified(false); setLookupInput(''); setLookupError(null); }} className={`p-3 rounded-xl border transition-all ${theme === 'light' ? 'border-zinc-300 text-zinc-700 hover:bg-zinc-50' : 'border-white/10 text-zinc-400 hover:bg-white/5'}`}><ChevronLeft size={24}/></button>
+             <button onClick={() => { setView('HOME'); setShowQuickClient(false); setClientVerified(false); setLookupInput(''); setLookupError(null); setLookupClientFound(null); setLookupPassword(''); setLookupPasswordError(null); setLookupClientFound(null); setLookupPassword(''); setLookupPasswordError(null); }} className={`p-3 rounded-xl border transition-all ${theme === 'light' ? 'border-zinc-300 text-zinc-700 hover:bg-zinc-50' : 'border-white/10 text-zinc-400 hover:bg-white/5'}`}><ChevronLeft size={24}/></button>
              <h2 className={`text-3xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Reservar Ritual</h2>
            </header>
            
@@ -899,47 +918,93 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
                   
                   {!clientVerified ? (
                     <div className="space-y-4 max-w-sm mx-auto w-full">
-                      <p className={`text-xs font-black uppercase tracking-widest ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-500'}`}>
-                        Informe seu celular ou e-mail cadastrado
-                      </p>
-                      <div className="relative">
-                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-[#C58A4A]" size={18}/>
-                        <input 
-                          type="text" 
-                          placeholder="Celular ou E-mail" 
-                          value={lookupInput} 
-                          onChange={e => { setLookupInput(e.target.value); setLookupError(null); }}
-                          onKeyDown={e => e.key === 'Enter' && handleLookupClient()}
-                          className={`w-full border p-5 pl-12 rounded-2xl text-xs font-bold outline-none transition-all ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus:border-blue-500' : 'bg-white/5 border-white/10 text-white focus:border-[#C58A4A]'}`} 
-                        />
-                      </div>
-                      
-                      {lookupError && (
-                        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl space-y-3">
-                          <p className="text-red-500 text-xs font-black">{lookupError}</p>
+
+                      {/* STEP 1: buscar por email/celular */}
+                      {!lookupClientFound ? (
+                        <>
+                          <p className={`text-xs font-black uppercase tracking-widest ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-500'}`}>
+                            Informe seu celular ou e-mail cadastrado
+                          </p>
+                          <div className="relative">
+                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-[#C58A4A]" size={18}/>
+                            <input 
+                              type="text" 
+                              placeholder="Celular ou E-mail" 
+                              value={lookupInput} 
+                              onChange={e => { setLookupInput(e.target.value); setLookupError(null); }}
+                              onKeyDown={e => e.key === 'Enter' && handleLookupClient()}
+                              className={`w-full border p-5 pl-12 rounded-2xl text-xs font-bold outline-none transition-all ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus:border-blue-500' : 'bg-white/5 border-white/10 text-white focus:border-[#C58A4A]'}`} 
+                            />
+                          </div>
+                          {lookupError && (
+                            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl space-y-3">
+                              <p className="text-red-500 text-xs font-black">{lookupError}</p>
+                              <button 
+                                onClick={() => { setView('LOGIN'); setLoginMode('register'); }} 
+                                className="w-full gradiente-ouro text-black py-3 rounded-xl font-black text-[10px] uppercase tracking-widest"
+                              >
+                                Criar Conta no Portal
+                              </button>
+                            </div>
+                          )}
                           <button 
-                            onClick={() => { setView('LOGIN'); setLoginMode('register'); }} 
-                            className="w-full gradiente-ouro text-black py-3 rounded-xl font-black text-[10px] uppercase tracking-widest"
+                            onClick={handleLookupClient} 
+                            className="w-full gradiente-ouro text-black py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-2xl hover:scale-105 transition-all"
                           >
-                            Criar Conta no Portal
+                            Continuar
                           </button>
-                        </div>
-                      )}
-                      
-                      <button 
-                        onClick={handleLookupClient} 
-                        className="w-full gradiente-ouro text-black py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-2xl hover:scale-105 transition-all"
-                      >
-                        Verificar Cadastro
-                      </button>
-                      
-                      {!lookupError && (
-                        <button 
-                          onClick={() => { setView('LOGIN'); setLoginMode('register'); }} 
-                          className={`text-[10px] font-black uppercase tracking-widest underline transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-zinc-900' : 'text-zinc-600 hover:text-[#C58A4A]'}`}
-                        >
-                          Não tenho cadastro — Criar Conta
-                        </button>
+                          {!lookupError && (
+                            <button 
+                              onClick={() => { setView('LOGIN'); setLoginMode('register'); }} 
+                              className={`text-[10px] font-black uppercase tracking-widest underline transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-zinc-900' : 'text-zinc-600 hover:text-[#C58A4A]'}`}
+                            >
+                              Não tenho cadastro — Criar Conta
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        /* STEP 2: confirmar com senha */
+                        <>
+                          <div className={`p-4 rounded-2xl border flex items-center gap-3 ${theme === 'light' ? 'bg-zinc-50 border-zinc-200' : 'bg-white/5 border-white/10'}`}>
+                            <div className="w-10 h-10 rounded-xl bg-[#C58A4A]/20 flex items-center justify-center flex-shrink-0">
+                              <User size={18} className="text-[#C58A4A]"/>
+                            </div>
+                            <div className="text-left">
+                              <p className={`font-black text-sm ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>{lookupClientFound.name}</p>
+                              <p className="text-zinc-500 text-[10px]">{lookupClientFound.phone}</p>
+                            </div>
+                          </div>
+                          <p className={`text-xs font-black uppercase tracking-widest ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-500'}`}>
+                            Digite sua senha para confirmar
+                          </p>
+                          <div className="relative">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-[#C58A4A]" size={18}/>
+                            <input 
+                              type="password" 
+                              placeholder="Senha" 
+                              value={lookupPassword} 
+                              onChange={e => { setLookupPassword(e.target.value); setLookupPasswordError(null); }}
+                              onKeyDown={e => e.key === 'Enter' && handleVerifyPassword()}
+                              autoFocus
+                              className={`w-full border p-5 pl-12 rounded-2xl text-xs font-bold outline-none transition-all ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus:border-blue-500' : 'bg-white/5 border-white/10 text-white focus:border-[#C58A4A]'}`} 
+                            />
+                          </div>
+                          {lookupPasswordError && (
+                            <p className="text-red-500 text-xs font-black text-center">{lookupPasswordError}</p>
+                          )}
+                          <button 
+                            onClick={handleVerifyPassword} 
+                            className="w-full gradiente-ouro text-black py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-2xl hover:scale-105 transition-all"
+                          >
+                            Confirmar Identidade
+                          </button>
+                          <button 
+                            onClick={() => { setLookupClientFound(null); setLookupPassword(''); setLookupPasswordError(null); }}
+                            className={`text-[10px] font-black uppercase tracking-widest underline transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-zinc-900' : 'text-zinc-600 hover:text-[#C58A4A]'}`}
+                          >
+                            Voltar
+                          </button>
+                        </>
                       )}
                     </div>
                   ) : (
@@ -959,7 +1024,7 @@ const PublicBooking: React.FC<PublicBookingProps> = ({ initialView = 'HOME' }) =
                         {loading ? 'Processando...' : 'Confirmar Ritual'}
                       </button>
                       <button 
-                        onClick={() => { setClientVerified(false); setLookupInput(''); setLookupError(null); }} 
+                        onClick={() => { setClientVerified(false); setLookupInput(''); setLookupError(null); setLookupClientFound(null); setLookupPassword(''); setLookupPasswordError(null); }} 
                         className={`text-[10px] font-black uppercase tracking-widest underline transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-zinc-900' : 'text-zinc-600 hover:text-[#C58A4A]'}`}
                       >
                         Trocar identificação
