@@ -64,7 +64,7 @@ const Services: React.FC = () => {
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1 relative">
           <Search className={`absolute left-4 top-1/2 -translate-y-1/2 ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-600'}`} size={18} />
-          <input type="text" placeholder="Pesquisar rituais..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className={`w-full border py-3 pl-12 pr-4 rounded-xl text-xs font-black outline-none transition-all ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus:border-blue-500' : 'bg-white/5 border-white/10 text-white focus:border-[#C58A4A]'}`} />
+          <input type="text" placeholder="Pesquisar Serviços..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className={`w-full border py-3 pl-12 pr-4 rounded-xl text-xs font-black outline-none transition-all ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus:border-blue-500' : 'bg-white/5 border-white/10 text-white focus:border-[#C58A4A]'}`} />
         </div>
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {categories.map(cat => (
@@ -109,7 +109,7 @@ const Services: React.FC = () => {
         <div className={`fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-xl animate-in zoom-in-95 ${theme === 'light' ? 'bg-black/70' : 'bg-black/95'}`}>
           <div className={`w-full max-w-lg rounded-[2.5rem] p-10 space-y-8 border relative shadow-2xl overflow-y-auto max-h-[90vh] scrollbar-hide ${theme === 'light' ? 'bg-white border-zinc-200' : 'cartao-vidro border-white/10'}`}>
             <div className="flex justify-between items-center">
-              <h2 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Configurar Ritual</h2>
+              <h2 className={`text-2xl font-black font-display italic ${theme === 'light' ? 'text-zinc-900' : 'text-white'}`}>Configurar Serviço</h2>
               <button onClick={() => setShowModal(false)} className={`transition-colors ${theme === 'light' ? 'text-zinc-500 hover:text-zinc-900' : 'text-zinc-500 hover:text-white'}`}><X size={24} /></button>
             </div>
             <form onSubmit={handleSave} className="space-y-6">
@@ -144,7 +144,7 @@ const Services: React.FC = () => {
                     <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className={`w-full border p-4 rounded-xl text-xs font-bold resize-none h-20 outline-none transition-all ${theme === 'light' ? 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus:border-blue-500' : 'bg-white/5 border-white/10 text-white focus:border-[#C58A4A]'}`} placeholder="Descreva o serviço..."></textarea>
                   </div>
                </div>
-               <button type="submit" className="w-full gradiente-ouro text-black py-5 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl">Salvar Ritual</button>
+               <button type="submit" className="w-full gradiente-ouro text-black py-5 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl">Salvar Serviço</button>
             </form>
           </div>
         </div>
