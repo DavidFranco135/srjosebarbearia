@@ -111,9 +111,6 @@ export function BarberProvider({ children }: { children?: ReactNode }) {
     reviews: []
   });
 
-  // Referência para controlar quando a notificação sonora foi tocada
-  const lastNotificationTimeRef = React.useRef<number>(0);
-
   useEffect(() => {
     localStorage.setItem('brb_theme', theme);
   }, [theme]);
@@ -135,39 +132,7 @@ export function BarberProvider({ children }: { children?: ReactNode }) {
         setServices(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Service)));
       }),
       onSnapshot(collection(db, COLLECTIONS.APPOINTMENTS), (snapshot) => {
-        const newAppointments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Appointment));
-        
-        // ✅ CORREÇÃO: Som de notificação apenas para ADMIN, uma vez por agendamento
-        const savedUser = localStorage.getItem('brb_user');
-        if (savedUser) {
-          const parsedUser = JSON.parse(savedUser);
-          if (parsedUser.role === 'ADMIN') {
-            const now = Date.now();
-            // Apenas toca som se passou mais de 5 segundos desde a última notificação
-            if (now - lastNotificationTimeRef.current > 5000 && newAppointments.length > appointments.length) {
-              lastNotificationTimeRef.current = now;
-              
-              // Reproduz o arquivo de áudio do iPhone
-              const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-              const oscillator = audioContext.createOscillator();
-              const gain = audioContext.createGain();
-              
-              oscillator.connect(gain);
-              gain.connect(audioContext.destination);
-              
-              oscillator.frequency.value = 540;
-              oscillator.type = 'sine';
-              
-              gain.gain.setValueAtTime(0.3, audioContext.currentTime);
-              gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-              
-              oscillator.start(audioContext.currentTime);
-              oscillator.stop(audioContext.currentTime + 0.3);
-            }
-          }
-        }
-        
-        setAppointments(newAppointments);
+        setAppointments(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Appointment)));
       }),
       onSnapshot(collection(db, COLLECTIONS.FINANCIAL), (snapshot) => {
         setFinancialEntries(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FinancialEntry)));
@@ -183,7 +148,7 @@ export function BarberProvider({ children }: { children?: ReactNode }) {
           const configData = doc.data() as ShopConfig;
           setConfig(configData);
           
-          // ✅ CORREÇÃO: Se houver usuário admin logado, atualizar com o nome do Firebase
+          // âœ… CORREÃ‡ÃƒO: Se houver usuÃ¡rio admin logado, atualizar com o nome do Firebase
           const savedUser = localStorage.getItem('brb_user');
           if (savedUser) {
             const parsedUser = JSON.parse(savedUser);
@@ -209,8 +174,8 @@ export function BarberProvider({ children }: { children?: ReactNode }) {
 
   const login = async (id: string, pass: string) => {
     if (id === 'srjoseadm@gmail.com' && pass === '654321') {
-      // ✅ CORREÇÃO: Carregar nome do Firebase ao fazer login
-      const adminName = config.adminName || 'Sr. José';
+      // âœ… CORREÃ‡ÃƒO: Carregar nome do Firebase ao fazer login
+      const adminName = config.adminName || 'Sr. JosÃ©';
       const adminAvatar = config.logo || 'https://i.pravatar.cc/150';
       
       setUser({ 
@@ -222,18 +187,11 @@ export function BarberProvider({ children }: { children?: ReactNode }) {
       });
       return;
     }
-    
-    // ✅ CORREÇÃO: Permitir login com email OU celular
-    const client = clients.find(c => {
-      const emailMatch = c.email && c.email.toLowerCase() === id.toLowerCase();
-      const phoneMatch = c.phone === id;
-      return (emailMatch || phoneMatch) && c.password === pass;
-    });
-    
+    const client = clients.find(c => (c.phone === id || c.email === id) && c.password === pass);
     if (client) {
       setUser({ id: client.id, name: client.name, email: client.email, role: 'CLIENTE', phone: client.phone });
     } else {
-      throw new Error('Credenciais inválidas');
+      throw new Error('Credenciais invÃ¡lidas');
     }
   };
 
@@ -249,14 +207,6 @@ export function BarberProvider({ children }: { children?: ReactNode }) {
   };
 
   const addClient = async (data: any) => {
-    // ✅ CORREÇÃO: Verificar se email já existe
-    if (data.email) {
-      const existingClient = clients.find(c => c.email && c.email.toLowerCase() === data.email.toLowerCase());
-      if (existingClient) {
-        throw new Error('Este email já está cadastrado no sistema.');
-      }
-    }
-
     const docRef = await addDoc(collection(db, COLLECTIONS.CLIENTS), {
       ...data,
       totalSpent: 0,
@@ -327,7 +277,7 @@ export function BarberProvider({ children }: { children?: ReactNode }) {
   const updateAppointmentStatus = async (id: string, status: any) => {
     await updateDoc(doc(db, COLLECTIONS.APPOINTMENTS, id), { status });
     
-    // Criar receita automática ao marcar como CONCLUÍDO_PAGO
+    // Criar receita automÃ¡tica ao marcar como CONCLUÃDO_PAGO
     if (status === 'CONCLUIDO_PAGO') {
       const appointment = appointments.find(a => a.id === id);
       if (appointment) {
@@ -342,14 +292,14 @@ export function BarberProvider({ children }: { children?: ReactNode }) {
             description: entryDescription,
             amount: appointment.price,
             type: 'RECEITA',
-            category: 'Serviços',
+            category: 'ServiÃ§os',
             date: new Date().toISOString().split('T')[0],
             appointmentId: id
           });
           
-          console.log(`✅ Receita criada automaticamente: R$ ${appointment.price}`);
+          console.log(`âœ… Receita criada automaticamente: R$ ${appointment.price}`);
         } else {
-          console.log('ℹ️ Receita já existe para este agendamento');
+          console.log('â„¹ï¸ Receita jÃ¡ existe para este agendamento');
         }
       }
     }
@@ -377,8 +327,8 @@ export function BarberProvider({ children }: { children?: ReactNode }) {
       date: new Date().toLocaleDateString('pt-BR')
     });
     await addDoc(collection(db, COLLECTIONS.NOTIFICATIONS), {
-      title: 'Nova Sugestão',
-      message: `${data.clientName} enviou uma sugestão`,
+      title: 'Nova SugestÃ£o',
+      message: `${data.clientName} enviou uma sugestÃ£o`,
       time: new Date().toISOString(),
       read: false,
       type: 'suggestion',
