@@ -43,7 +43,7 @@ const Appointments: React.FC = () => {
   const [rescheduleData, setRescheduleData] = useState({ date: '', time: '' });
   const [showQuickClient, setShowQuickClient] = useState(false);
   const [newApp, setNewApp] = useState({ clientId: '', serviceId: '', professionalId: '', startTime: '09:00' });
-  const [quickClient, setQuickClient] = useState({ name: '', phone: '' });
+  const [quickClient, setQuickClient] = useState({ name: '', phone: '', email: '' });
   const [filterPeriod, setFilterPeriod] = useState<'day' | 'month' | 'all'>('day');
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
 
@@ -62,10 +62,10 @@ const Appointments: React.FC = () => {
 
   const handleQuickClient = async () => {
     if(!quickClient.name || !quickClient.phone) return alert("Preencha nome e telefone");
-    const client = await addClient({ ...quickClient, email: '' });
+    const client = await addClient({ ...quickClient, email: quickClient.email });
     setNewApp({...newApp, clientId: client.id});
     setShowQuickClient(false);
-    setQuickClient({ name: '', phone: '' });
+    setQuickClient({ name: '', phone: '', email: '' });
   };
 
   // NOVA FUNÇÃO: Criar agendamento ao clicar em um horário vazio
@@ -303,7 +303,11 @@ const Appointments: React.FC = () => {
                       <p className="text-[9px] font-black uppercase text-[#C58A4A]">Rápido: Novo Cliente</p>
                       <input type="text" placeholder="Nome" value={quickClient.name} onChange={e => setQuickClient({...quickClient, name: e.target.value})} className="w-full bg-black/20 border border-white/5 p-3 rounded-lg text-xs" />
                       <input type="tel" placeholder="WhatsApp" value={quickClient.phone} onChange={e => setQuickClient({...quickClient, phone: e.target.value})} className="w-full bg-black/20 border border-white/5 p-3 rounded-lg text-xs" />
-                      <button type="button" onClick={handleQuickClient} className="w-full bg-[#C58A4A] text-black py-2 rounded-lg text-[9px] font-black uppercase">Salvar e Selecionar</button>
+                      <input type="email" placeholder="E-mail" value={quickClient.email} onChange={e => setQuickClient({...quickClient, email: e.target.value})} className="w-full bg-black/20 border border-white/5 p-3 rounded-lg text-xs" />
+                      <div className="flex gap-2">
+                        <button type="button" onClick={() => setShowQuickClient(false)} className="flex-1 bg-white/5 text-zinc-500 py-2 rounded-lg text-[9px] font-black uppercase hover:bg-white/10 transition-all">Fechar</button>
+                        <button type="button" onClick={handleQuickClient} className="flex-1 bg-[#C58A4A] text-black py-2 rounded-lg text-[9px] font-black uppercase">Salvar e Selecionar</button>
+                      </div>
                     </div>
                   )}
                   <select required value={newApp.professionalId} onChange={e => setNewApp({...newApp, professionalId: e.target.value})} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl outline-none text-xs font-black uppercase">
