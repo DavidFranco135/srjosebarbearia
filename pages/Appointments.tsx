@@ -66,19 +66,28 @@ const playNotificationSound = async (): Promise<void> => {
   } catch (_) {}
 };
 
-// Toca uma única vez — bloqueia qualquer chamada extra dentro de 6 s
-let soundCooldown = false;
+// ─── Coordenação entre abas via localStorage ─────────────────────────────
+// Problema: admin em 2 abas (ou cliente + admin) → Firestore dispara onSnapshot
+// em TODAS ao mesmo tempo → som toca múltiplas vezes.
+// Solução: a primeira aba a escrever o timestamp "vence" e toca o som.
+// As demais checam que já foi tocado e ficam em silêncio.
+const SOUND_LS_KEY = 'brb_last_notif_ts';
+
 const scheduleNotificationSound = (): void => {
-  if (soundCooldown) return;          // já tocando ou em cooldown
-  soundCooldown = true;
   if (notifDebounceTimer) clearTimeout(notifDebounceTimer);
-  // Pequeno delay para garantir que o AudioContext está pronto
   notifDebounceTimer = setTimeout(() => {
+    const now = Date.now();
+    const lastTs = parseInt(localStorage.getItem(SOUND_LS_KEY) || '0', 10);
+    // Se outra aba já tocou nos últimos 6 s, esta fica em silêncio
+    if (now - lastTs < 6000) {
+      notifDebounceTimer = null;
+      return;
+    }
+    // Esta aba venceu — registra e toca
+    localStorage.setItem(SOUND_LS_KEY, String(now));
     playNotificationSound();
     notifDebounceTimer = null;
-    // Libera após 6 s — tempo suficiente para absorver qualquer re-render do Firestore
-    setTimeout(() => { soundCooldown = false; }, 6000);
-  }, 300);
+  }, 400);
 };
 
 const Appointments: React.FC = () => {
